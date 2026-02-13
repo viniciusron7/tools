@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester</title>
+    <link rel="stylesheet" href="css/api-tester.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>API Tester</h1>
+        </header>
+
+        <div class="main-content">
+            <!-- Request Panel -->
+            <div class="request-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Request</h2>
+                    <button class="favorites-star" onclick="toggleFavorite()" title="Adicionar aos favoritos">
+                        ☆
+                    </button>
+                </div>
+
+                <!-- URL Section -->
+                <div class="url-section">
+                    <select class="method-select" id="httpMethod" onchange="updateMethodIndicator()">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="HEAD">HEAD</option>
+                        <option value="OPTIONS">OPTIONS</option>
+                    </select>
+                    <input type="text" class="url-input" id="apiUrl" placeholder="https://api.exemplo.com/endpoint" onblur="validateUrl()">
+                    <button class="send-btn" id="sendBtn" onclick="sendRequest()">
+                        <span class="loading-spinner" id="loadingSpinner"></span>
+                        Enviar
+                    </button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="clearAllFields()">Limpar</button>
+                    <button class="quick-btn" onclick="exportToCurl()">Exportar cURL</button>
+                    <button class="quick-btn" onclick="importFromCurl()">Importar cURL</button>
+                    <button class="quick-btn" onclick="saveRequest()">Salvar</button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('params')">Query Params</div>
+                    <div class="tab" onclick="switchTab('headers')">Headers</div>
+                    <div class="tab" onclick="switchTab('body')">Body</div>
+                </div>
+
+                <!-- Query Parameters Tab -->
+                <div class="tab-content active" id="params-content">
+                    <div class="dynamic-list" id="queryParams"></div>
+                    <button class="add-btn" onclick="addQueryParam()">+ Adicionar Parâmetro</button>
+                </div>
+
+                <!-- Headers Tab -->
+                <div class="tab-content" id="headers-content">
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="addCommonHeader('Authorization')">Authorization</button>
+                        <button class="quick-btn" onclick="addCommonHeader('Content-Type')">Content-Type</button>
+                        <button class="quick-btn" onclick="addCommonHeader('Accept')">Accept</button>
+                        <button class="quick-btn" onclick="exportHeaders()">Exportar JSON</button>
+                        <button class="quick-btn" onclick="importHeaders()">Importar JSON</button>
+                    </div>
+
+                    <div class="dynamic-list" id="requestHeaders"></div>
+                    <button class="add-btn" onclick="addHeader()">+ Adicionar Header</button>
+                </div>
+
+                <!-- Body Tab -->
+                <div class="tab-content" id="body-content">
+                    <div class="form-group">
+                        <label class="form-label">Content-Type:</label>
+                        <select class="form-select" id="contentType" onchange="updateBodyEditor()">
+                            <option value="none">Nenhum</option>
+                            <option value="application/json">application/json</option>
+                            <option value="multipart/form-data">multipart/form-data</option>
+                            <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+                            <option value="text/plain">text/plain</option>
+                            <option value="application/xml">application/xml</option>
+                        </select>
+                    </div>
+
+                    <div id="bodyEditor">
+                        <div id="jsonEditor" style="display: none;">
+                            <textarea class="json-editor" id="jsonBody" placeholder='{\n  "key": "value"\n}'></textarea>
+                        </div>
+
+                        <div id="formDataEditor" style="display: none;">
+                            <div class="dynamic-list" id="formFields">
+                                <div class="list-item">
+                                    <input type="text" placeholder="Chave" class="form-key">
+                                    <input type="text" placeholder="Valor" class="form-value">
+                                    <button class="remove-btn" onclick="removeItem(this)">X</button>
+                                </div>
+                            </div>
+                            <button class="add-btn" onclick="addFormField()">+ Adicionar Campo</button>
+                            
+                            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                                <p>Clique para adicionar arquivos</p>
+                                <input type="file" id="fileInput" multiple style="display: none;" onchange="handleFileUpload(this)">
+                            </div>
+                            <div class="file-list" id="fileList"></div>
+                        </div>
+
+                        <div id="rawEditor" style="display: none;">
+                            <textarea class="json-editor" id="rawBody" placeholder="Insira o conteúdo do body aqui..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Panel -->
+            <div class="response-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Response</h2>
+                </div>
+
+                <div class="response-info" id="responseInfo" style="display: none;">
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span id="responseStatus"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tempo:</span>
+                        <span id="responseTime"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tamanho:</span>
+                        <span id="responseSize"></span>
+                    </div>
+                </div>
+
+                <div class="tabs" id="responseTabs" style="display: none;">
+                    <div class="tab active" onclick="switchResponseTab('body')">Body</div>
+                    <div class="tab" onclick="switchResponseTab('headers')">Headers</div>
+                </div>
+
+                <div class="tab-content active" id="response-body-content">
+                    <div class="response-body" id="responseBody">
+                        <p style="text-align: center; color: #94a3b8; margin-top: 50px;">
+                            Envie uma requisição para ver a resposta aqui
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="response-headers-content">
+                    <div class="response-body" id="responseHeaders"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="history-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Histórico</h2>
+                <button class="quick-btn" onclick="clearHistory()">Limpar</button>
+            </div>
+            <div id="historyList">
+                <p style="text-align: center; color: #94a3b8;">
+                    Nenhuma requisição no histórico ainda
+                </p>
+            </div>
+        </div>
+
+        <!-- cURL Export Modal -->
+        <div id="curlModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(18, 24, 38, 0.98); border: 1px solid #2a3348; padding: 24px; border-radius: 14px; max-width: 80%; width: 600px;">
+                <h3 style="margin-bottom: 16px; color: #cbd5e1;">Comando cURL</h3>
+                <div class="curl-output" id="curlOutput"></div>
+                <div style="margin-top: 16px; text-align: right;">
+                    <button class="quick-btn" onclick="copyCurl()">Copiar</button>
+                    <button class="quick-btn" onclick="closeCurlModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api-tester.js"></script>
+</body>
+</html>

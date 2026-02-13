@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construtor Json</title>
+    <link rel="stylesheet" href="css/json-construtor.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Construtor Json</h1>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Construtor</h2>
+                    <div class="element-controls">
+                        <button class="mini-btn btn-secondary" onclick="undo()" id="undoBtn" disabled>Desfazer</button>
+                        <button class="mini-btn btn-secondary" onclick="redo()" id="redoBtn" disabled>Refazer</button>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="currentPath = []; showAddArrayModal()">
+                        Adicionar Array
+                    </button>
+                    <button class="btn btn-success" onclick="currentPath = []; showAddKeyValueModal()">
+                        Adicionar Propriedade
+                    </button>
+                    <button class="btn btn-primary" onclick="currentPath = []; showAddObjectModal()">
+                        Adicionar Objeto
+                    </button>
+                    <button class="btn btn-info" onclick="showImportModal()">
+                        Importar JSON
+                    </button>
+                    <button class="btn btn-warning" onclick="clearAll()">
+                        Limpar Tudo
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleSelectionMode()" id="selectionBtn">
+                        Seleção Múltipla
+                    </button>
+                </div>
+
+                <div class="multi-selection-controls" id="multiSelectionControls">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span><strong>Modo Seleção Múltipla Ativo</strong></span>
+                        <span id="selectedCount">0 elementos selecionados</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-warning btn-sm" onclick="moveSelectedElements()">
+                            Mover Selecionados
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="removeSelectedElements()">
+                            Remover Selecionados
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="selectAll()">
+                            Selecionar Tudo
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="clearSelection()">
+                            Limpar Seleção
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleSelectionMode()">
+                            Sair do Modo Seleção
+                        </button>
+                    </div>
+                </div>
+
+                <div class="json-builder" id="jsonBuilder">
+                    <div style="text-align: center; color: #94a3b8; padding: 50px;">
+                        Clique nos botões acima para começar a construir seu JSON
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Visualização JSON</h2>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-info" onclick="copyToClipboard()">
+                        Copiar JSON
+                    </button>
+                    <button class="btn btn-success" onclick="downloadJSON()">
+                        Baixar JSON
+                    </button>
+                    <button class="btn btn-primary" onclick="formatJSON()">
+                        Formatar
+                    </button>
+                </div>
+
+                <div class="json-preview" id="jsonPreview">{}</div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">JSON válido</span>
+            </div>
+            <div>
+                <span id="elementCount">0 elementos</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="move-overlay" id="moveOverlay"></div>
+    <div class="move-indicator" id="moveIndicator" style="display: none;"></div>
+
+    <div class="modal" id="arrayModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Array</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="arrayName" placeholder="Nome do array (ex: usuarios, produtos)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('arrayModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addArray()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="keyValueModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Propriedade</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="keyName" placeholder="Nome da chave">
+                </div>
+                <div class="input-group">
+                    <select id="valueType" onchange="updateValueInput()">
+                        <option value="string">String (texto)</option>
+                        <option value="number">Número</option>
+                        <option value="boolean">Boolean (true/false)</option>
+                        <option value="null">Null</option>
+                    </select>
+                </div>
+                <div class="input-group" id="valueInputGroup">
+                    <input type="text" id="valueInput" placeholder="Valor">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('keyValueModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addKeyValue()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="objectModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Objeto</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="objectName" placeholder="Nome do objeto (ex: usuario, config)">
+                </div>
+                <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                    Um objeto vazio será adicionado. Você pode adicionar propriedades a ele posteriormente.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('objectModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addObject()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">Importar JSON</div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; color: #94a3b8;">
+                    Cole seu JSON abaixo ou carregue um arquivo .json
+                </p>
+                
+                <div style="margin-bottom: 20px;">
+                    <label class="btn btn-primary" style="cursor: pointer;">
+                        Escolher Arquivo
+                        <input type="file" id="fileInput" accept=".json,application/json" style="display: none;" onchange="handleFileSelect(event)">
+                    </label>
+                    <span id="fileName" style="margin-left: 10px; color: #94a3b8;"></span>
+                </div>
+                
+                <div class="input-group" style="flex-direction: column;">
+                    <textarea id="jsonInput" placeholder='Cole seu JSON aqui... Ex: {"nome": "João", "idade": 30}' 
+                        style="width: 100%; min-height: 300px; padding: 15px; border: 1px solid #334155; 
+                        border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; background: #0b1220; color: #e2e8f0;"></textarea>
+                </div>
+                
+                <div id="importError" style="color: #dc3545; margin-top: 10px; display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('importModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="importJSON()">Importar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="moveModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">Mover Elemento</div>
+            <div class="modal-body">
+                <div class="breadcrumb" id="moveBreadcrumb"></div>
+                <p style="margin-bottom: 15px; color: #94a3b8;">
+                    Selecione o destino para mover o elemento:
+                </p>
+                <div class="location-selector" id="locationSelector">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('moveModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmMove()" id="confirmMoveBtn" disabled>Mover</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="addValueModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Valor ao Array</div>
+            <div class="modal-body">
+                <p style="margin-bottom: 10px; color: #94a3b8; font-size: 14px;">
+                    Adicione um valor primitivo diretamente ao array.
+                </p>
+                <div class="input-group">
+                    <select id="arrayValueType" onchange="updateArrayValueInput()">
+                        <option value="string">String (texto)</option>
+                        <option value="number">Número</option>
+                        <option value="boolean">Boolean (true/false)</option>
+                        <option value="null">Null</option>
+                    </select>
+                </div>
+                <div class="input-group" id="arrayValueInputGroup">
+                    <input type="text" id="arrayValueInput" placeholder="Valor" class="edit-input" style="flex: 1;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addValueModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addValueToArray()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/json-construtor.js"></script>
+</body>
+</html>

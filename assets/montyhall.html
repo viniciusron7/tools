@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monty Hall</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/montyhall.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Monty Hall</h1>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('play')">Jogar</div>
+            <div class="tab" onclick="switchTab('simulate')">Simular</div>
+        </div>
+
+        <!-- Tab Jogar -->
+        <div id="play-tab" class="tab-content active">
+            <div class="panel">
+                <div class="message" id="message">Escolha uma porta</div>
+
+                <div class="game-area">
+                    <div class="door-container" data-door="0">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                1
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container" data-door="1">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                2
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container" data-door="2">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                3
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="switchBtn" class="btn-success" style="display: none;">Trocar Porta</button>
+                    <button id="stayBtn" class="btn-danger" style="display: none;">Manter Porta</button>
+                    <button id="newGameBtn" class="btn-primary">Nova Rodada</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Simular -->
+        <div id="simulate-tab" class="tab-content">
+            <div class="panel">
+                <div class="panel-title">Configurar</div>
+                <div class="simulation-controls">
+                    <div class="control-group">
+                        <label for="num-simulations">Quantidade</label>
+                        <select id="num-simulations">
+                            <option value="10">10</option>
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="500">500</option>
+                            <option value="1000">1000</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="decision">Estrategia</label>
+                        <select id="decision">
+                            <option value="switch">Sempre trocar</option>
+                            <option value="stay">Sempre manter</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="speed">Velocidade</label>
+                        <select id="speed">
+                            <option value="500">2/s</option>
+                            <option value="40" selected>25/s</option>
+                            <option value="20">50/s</option>
+                            <option value="13">75/s</option>
+                            <option value="10">100/s</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="simulateBtn" onclick="startSimulation()" style="width:100%;">Simular</button>
+
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText"></div>
+
+                <div class="message" id="sim-message">Configure e inicie a simulacao</div>
+
+                <div class="game-area">
+                    <div class="door-container sim-door" data-door="0">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                1
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container sim-door" data-door="1">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                2
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container sim-door" data-door="2">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                3
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel stats-section">
+            <div class="panel-title">Estatisticas</div>
+
+            <div class="summary">
+                <div class="summary-item">
+                    <h3>Total</h3>
+                    <p id="totalGames">0</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Vitorias</h3>
+                    <p id="totalWins">0</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Taxa</h3>
+                    <p id="winRate">0%</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Com troca</h3>
+                    <p id="switchWinRate">0%</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Sem troca</h3>
+                    <p id="stayWinRate">0%</p>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="gameHistory">
+                    <thead>
+                        <tr>
+                            <th>Rodada</th>
+                            <th>Inicial</th>
+                            <th>Aberta</th>
+                            <th>Trocou</th>
+                            <th>Final</th>
+                            <th>Carro</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="chart-container">
+                <h2>Taxa de vitoria por rodada</h2>
+                <canvas id="winRateChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/montyhall.js"></script>
+</body>
+</html>
