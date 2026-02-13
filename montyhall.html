@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monty Hall</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at top, #1f2a44 0%, #0f1420 45%, #090d16 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin: 0;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2f3a52;
+            gap: 4px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            font-size: 13px;
+            color: #94a3b8;
+            transition: color .2s ease, border-color .2s ease;
+            background: none;
+            border-radius: 0;
+            box-shadow: none;
+            margin: 0;
+        }
+
+        .tab.active {
+            color: #e2e8f0;
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab:hover:not(.active) {
+            color: #cbd5e1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .panel {
+            background: rgba(18, 24, 38, 0.92);
+            border: 1px solid #2a3348;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #2f3a52;
+        }
+
+        .simulation-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .control-group select {
+            padding: 10px 12px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #0b1220;
+            color: #e2e8f0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color .2s ease;
+        }
+
+        .control-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .control-group select option {
+            background: #0b1220;
+            color: #e2e8f0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 3px;
+            margin: 16px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 3px;
+            font-size: 0;
+        }
+
+        .game-area {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+
+        .door-container {
+            position: relative;
+            width: 160px;
+            height: 240px;
+            perspective: 1000px;
+            cursor: pointer;
+            transition: transform 0.25s ease;
+        }
+
+        .door-container:hover:not(.disabled):not(.sim-door) {
+            transform: translateY(-4px);
+        }
+
+        .door-container.sim-door {
+            cursor: default;
+        }
+
+        .door-container.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .door {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            transform-origin: left center;
+        }
+
+        .door.open {
+            transform: rotateY(-80deg);
+        }
+
+        .door-front, .door-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+        }
+
+        .door-front {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            position: relative;
+            transition: border-color .25s ease, box-shadow .25s ease;
+        }
+
+        .door-front::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 28px;
+            background: #475569;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 7px;
+        }
+
+        .door-front::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #1e293b;
+            right: 19px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+        }
+
+        .door-panels {
+            position: absolute;
+            inset: 12px;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .door-panels::before,
+        .door-panels::after {
+            content: '';
+            position: absolute;
+            background: #334155;
+            width: 100%;
+            height: 1px;
+            left: 0;
+        }
+
+        .door-panels::before {
+            top: 33%;
+        }
+
+        .door-panels::after {
+            top: 66%;
+        }
+
+        .door-back {
+            background: #0f172a;
+            transform: rotateY(180deg);
+            border-radius: 10px;
+        }
+
+        .door-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: -1;
+        }
+
+        .door-content.show {
+            opacity: 1;
+            animation: fadeUp 0.4s ease;
+        }
+
+        .door-content .emoji {
+            font-size: 64px;
+            line-height: 1;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: filter .2s ease;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+
+        button:hover:not(:disabled) {
+            filter: brightness(1.15);
+            border-color: #3b82f6;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            filter: brightness(0.92);
+        }
+
+        .btn-success {
+            background: #166534;
+            color: #d1fae5;
+            border: 1px solid #22c55e33;
+        }
+
+        .btn-danger {
+            background: #7f1d1d;
+            color: #fecaca;
+            border: 1px solid #ef444433;
+        }
+
+        .message {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin: 16px 0;
+            min-height: 28px;
+        }
+
+        .stats-section {
+            margin-top: 20px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: #131b2d;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #2f3a52;
+            transition: border-color .25s ease, transform .2s ease;
+        }
+
+        .summary-item:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .summary-item h3 {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .summary-item p {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .chart-container {
+            background: #131b2d;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #2f3a52;
+            height: 350px;
+            padding-bottom: 40px;
+        }
+
+        .chart-container h2 {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            text-align: center;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        th {
+            background: #131b2d;
+            font-weight: 600;
+            color: #94a3b8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .win {
+            color: #4ade80;
+            font-weight: 600;
+        }
+
+        .lose {
+            color: #f87171;
+            font-weight: 600;
+        }
+
+        .door-container.selected .door-front {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.25), inset 0 0 0 1px rgba(59, 130, 246, 0.15);
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 14px;
+            }
+
+            .door-container {
+                width: 120px;
+                height: 180px;
+            }
+
+            .door-front {
+                font-size: 1.6rem;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .simulation-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .game-area {
+                gap: 12px;
+            }
+
+            .chart-container {
+                height: 280px;
+            }
+
+            th, td {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .door-container {
+                width: 100px;
+                height: 150px;
+            }
+
+            .door-front {
+                font-size: 1.3rem;
+            }
+
+            .door-content .emoji {
+                font-size: 40px;
+            }
+
+            .summary {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Monty Hall</h1>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('play')">Jogar</div>
+            <div class="tab" onclick="switchTab('simulate')">Simular</div>
+        </div>
+
+        <!-- Tab Jogar -->
+        <div id="play-tab" class="tab-content active">
+            <div class="panel">
+                <div class="message" id="message">Escolha uma porta</div>
+
+                <div class="game-area">
+                    <div class="door-container" data-door="0">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                1
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container" data-door="1">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                2
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container" data-door="2">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                3
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="switchBtn" class="btn-success" style="display: none;">Trocar Porta</button>
+                    <button id="stayBtn" class="btn-danger" style="display: none;">Manter Porta</button>
+                    <button id="newGameBtn" class="btn-primary">Nova Rodada</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Simular -->
+        <div id="simulate-tab" class="tab-content">
+            <div class="panel">
+                <div class="panel-title">Configurar</div>
+                <div class="simulation-controls">
+                    <div class="control-group">
+                        <label for="num-simulations">Quantidade</label>
+                        <select id="num-simulations">
+                            <option value="10">10</option>
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="500">500</option>
+                            <option value="1000">1000</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="decision">Estrategia</label>
+                        <select id="decision">
+                            <option value="switch">Sempre trocar</option>
+                            <option value="stay">Sempre manter</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="speed">Velocidade</label>
+                        <select id="speed">
+                            <option value="500">2/s</option>
+                            <option value="40" selected>25/s</option>
+                            <option value="20">50/s</option>
+                            <option value="13">75/s</option>
+                            <option value="10">100/s</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="simulateBtn" onclick="startSimulation()" style="width:100%;">Simular</button>
+
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText"></div>
+
+                <div class="message" id="sim-message">Configure e inicie a simulacao</div>
+
+                <div class="game-area">
+                    <div class="door-container sim-door" data-door="0">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                1
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container sim-door" data-door="1">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                2
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+
+                    <div class="door-container sim-door" data-door="2">
+                        <div class="door">
+                            <div class="door-front">
+                                <div class="door-panels"></div>
+                                3
+                            </div>
+                            <div class="door-back"></div>
+                        </div>
+                        <div class="door-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel stats-section">
+            <div class="panel-title">Estatisticas</div>
+
+            <div class="summary">
+                <div class="summary-item">
+                    <h3>Total</h3>
+                    <p id="totalGames">0</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Vitorias</h3>
+                    <p id="totalWins">0</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Taxa</h3>
+                    <p id="winRate">0%</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Com troca</h3>
+                    <p id="switchWinRate">0%</p>
+                </div>
+                <div class="summary-item">
+                    <h3>Sem troca</h3>
+                    <p id="stayWinRate">0%</p>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="gameHistory">
+                    <thead>
+                        <tr>
+                            <th>Rodada</th>
+                            <th>Inicial</th>
+                            <th>Aberta</th>
+                            <th>Trocou</th>
+                            <th>Final</th>
+                            <th>Carro</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="chart-container">
+                <h2>Taxa de vitoria por rodada</h2>
+                <canvas id="winRateChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let winRateChart;
+        
+        function prizeHtml(isCar) {
+            return isCar
+                ? '<span class="emoji">🚗</span>'
+                : '<span class="emoji">🐐</span>';
+        }
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('winRateChart').getContext('2d');
+            winRateChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Taxa de Vitoria',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        tension: 0.1,
+                        fill: true,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 30,
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
+                    animation: {
+                        duration: 0
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#1e293b',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#94a3b8'
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Rodada',
+                                color: '#64748b',
+                                padding: { top: 10 }
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                maxTicksLimit: 10,
+                                padding: 5
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.08)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Vitoria (%)',
+                                color: '#64748b',
+                                padding: { bottom: 10 }
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                callback: value => value.toFixed(0) + '%',
+                                padding: 5
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.08)'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        const gameHistory = [];
+        let currentGame = {
+            carDoor: null,
+            selectedDoor: null,
+            openedDoor: null,
+            finalDoor: null,
+            switched: false,
+            won: false
+        };
+        
+        let gamePhase = 'selecting';
+        let isSimulating = false;
+        let simulationQueue = [];
+        let currentSimulation = 0;
+        let totalSimulations = 0;
+        
+        const doors = document.querySelectorAll('.door-container:not(.sim-door)');
+        const simDoors = document.querySelectorAll('.sim-door');
+        const message = document.getElementById('message');
+        const simMessage = document.getElementById('sim-message');
+        const switchBtn = document.getElementById('switchBtn');
+        const stayBtn = document.getElementById('stayBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const simulateBtn = document.getElementById('simulateBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            
+            if (tab === 'play') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('play-tab').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('simulate-tab').classList.add('active');
+            }
+        }
+        
+        function initGame() {
+            gamePhase = 'selecting';
+            currentGame = {
+                carDoor: Math.floor(Math.random() * 3),
+                selectedDoor: null,
+                openedDoor: null,
+                finalDoor: null,
+                switched: false,
+                won: false
+            };
+            
+            doors.forEach((doorContainer) => {
+                const door = doorContainer.querySelector('.door');
+                const content = doorContainer.querySelector('.door-content');
+                
+                door.classList.remove('open');
+                content.classList.remove('show');
+                doorContainer.classList.remove('disabled', 'selected');
+            });
+            
+            setTimeout(() => {
+                doors.forEach((doorContainer, index) => {
+                    const content = doorContainer.querySelector('.door-content');
+                    content.innerHTML = prizeHtml(index === currentGame.carDoor);
+                });
+            }, 600);
+            
+            message.textContent = 'Escolha uma porta';
+            switchBtn.style.display = 'none';
+            stayBtn.style.display = 'none';
+            newGameBtn.disabled = true;
+        }
+        
+        function selectDoor(doorIndex) {
+            if (gamePhase !== 'selecting') return;
+            
+            currentGame.selectedDoor = doorIndex;
+            doors[doorIndex].classList.add('selected');
+            
+            const goatDoors = [0, 1, 2].filter(i => 
+                i !== currentGame.selectedDoor && i !== currentGame.carDoor
+            );
+            currentGame.openedDoor = goatDoors[Math.floor(Math.random() * goatDoors.length)];
+            
+            setTimeout(() => {
+                doors[currentGame.openedDoor].querySelector('.door').classList.add('open');
+                doors[currentGame.openedDoor].querySelector('.door-content').classList.add('show');
+                doors[currentGame.openedDoor].classList.add('disabled');
+                
+                message.textContent = `Porta ${currentGame.openedDoor + 1} era bode. Trocar ou manter?`;
+                switchBtn.style.display = 'inline-block';
+                stayBtn.style.display = 'inline-block';
+                gamePhase = 'switching';
+            }, 500);
+        }
+        
+        function makeDecision(switched) {
+            if (gamePhase !== 'switching') return;
+            
+            currentGame.switched = switched;
+            
+            if (switched) {
+                const otherDoor = [0, 1, 2].find(i => 
+                    i !== currentGame.selectedDoor && i !== currentGame.openedDoor
+                );
+                doors[currentGame.selectedDoor].classList.remove('selected');
+                currentGame.finalDoor = otherDoor;
+                doors[otherDoor].classList.add('selected');
+            } else {
+                currentGame.finalDoor = currentGame.selectedDoor;
+            }
+            
+            setTimeout(() => {
+                doors.forEach((doorContainer, index) => {
+                    if (index !== currentGame.openedDoor) {
+                        doorContainer.querySelector('.door').classList.add('open');
+                        doorContainer.querySelector('.door-content').classList.add('show');
+                    }
+                });
+                
+                currentGame.won = currentGame.finalDoor === currentGame.carDoor;
+                
+                if (currentGame.won) {
+                    message.textContent = 'Vitoria! Voce acertou o carro.';
+                } else {
+                    message.textContent = 'Derrota. Era um bode.';
+                }
+                
+                gamePhase = 'finished';
+                switchBtn.style.display = 'none';
+                stayBtn.style.display = 'none';
+                newGameBtn.disabled = false;
+                
+                saveGame();
+            }, 500);
+        }
+        
+        function startSimulation() {
+            if (isSimulating) return;
+            
+            isSimulating = true;
+            simulateBtn.disabled = true;
+            progressBar.classList.add('active');
+            progressFill.style.width = '0%';
+            progressFill.textContent = '0%';
+            
+            const numSims = parseInt(document.getElementById('num-simulations').value);
+            const decision = document.getElementById('decision').value;
+            const speed = parseInt(document.getElementById('speed').value);
+            
+            currentSimulation = 0;
+            totalSimulations = numSims;
+            simulationQueue = [];
+            
+            for (let i = 0; i < numSims; i++) {
+                simulationQueue.push({
+                    decision: decision,
+                    delay: speed
+                });
+            }
+            
+            runNextSimulation();
+        }
+        
+        function runNextSimulation() {
+            if (simulationQueue.length === 0) {
+                isSimulating = false;
+                simulateBtn.disabled = false;
+                progressBar.classList.remove('active');
+                document.getElementById('progressText').textContent = '';
+                simMessage.textContent = 'Simulacao finalizada';
+                return;
+            }
+            
+            const sim = simulationQueue.shift();
+            currentSimulation++;
+            updateProgress();
+            
+            const simGame = {
+                carDoor: Math.floor(Math.random() * 3),
+                selectedDoor: Math.floor(Math.random() * 3),
+                openedDoor: null,
+                finalDoor: null,
+                switched: sim.decision === 'switch',
+                won: false
+            };
+            
+            // Reset doors
+            simDoors.forEach((doorContainer) => {
+                const door = doorContainer.querySelector('.door');
+                const content = doorContainer.querySelector('.door-content');
+                
+                door.classList.remove('open');
+                content.classList.remove('show');
+                doorContainer.classList.remove('disabled', 'selected');
+                
+                const index = Array.from(simDoors).indexOf(doorContainer);
+                content.innerHTML = prizeHtml(index === simGame.carDoor);
+            });
+
+            // Select initial door immediately
+            simDoors[simGame.selectedDoor].classList.add('selected');
+            simMessage.textContent = `${currentSimulation}/${totalSimulations} - Porta ${simGame.selectedDoor + 1}`;
+            
+            // Find and open goat door immediately
+            const goatDoors = [0, 1, 2].filter(i => 
+                i !== simGame.selectedDoor && i !== simGame.carDoor
+            );
+            simGame.openedDoor = goatDoors[Math.floor(Math.random() * goatDoors.length)];
+            
+            simDoors[simGame.openedDoor].querySelector('.door').classList.add('open');
+            simDoors[simGame.openedDoor].querySelector('.door-content').classList.add('show');
+            simDoors[simGame.openedDoor].classList.add('disabled');
+            
+            // Make decision immediately
+            if (simGame.switched) {
+                const otherDoor = [0, 1, 2].find(i => 
+                    i !== simGame.selectedDoor && i !== simGame.openedDoor
+                );
+                simDoors[simGame.selectedDoor].classList.remove('selected');
+                simGame.finalDoor = otherDoor;
+                simDoors[otherDoor].classList.add('selected');
+            } else {
+                simGame.finalDoor = simGame.selectedDoor;
+            }
+            
+            // Reveal all doors
+            simDoors.forEach((doorContainer, index) => {
+                if (index !== simGame.openedDoor) {
+                    doorContainer.querySelector('.door').classList.add('open');
+                    doorContainer.querySelector('.door-content').classList.add('show');
+                }
+            });
+            
+            simGame.won = simGame.finalDoor === simGame.carDoor;
+            
+            if (simGame.won) {
+                simMessage.textContent = `Rodada ${currentSimulation} - Vitoria`;
+            } else {
+                simMessage.textContent = `Rodada ${currentSimulation} - Derrota`;
+            }
+            
+            // Save to history
+            gameHistory.push({
+                round: gameHistory.length + 1,
+                selectedDoor: simGame.selectedDoor + 1,
+                openedDoor: simGame.openedDoor + 1,
+                switched: simGame.switched,
+                finalDoor: simGame.finalDoor + 1,
+                carDoor: simGame.carDoor + 1,
+                won: simGame.won
+            });
+            
+            updateStats();
+            
+            // Continue to next simulation after the specified delay
+            setTimeout(runNextSimulation, sim.delay);
+        }
+        
+        function updateProgress() {
+            const percentage = Math.round((currentSimulation / totalSimulations) * 100);
+            progressFill.style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${currentSimulation} / ${totalSimulations}`;
+        }
+        
+        function saveGame() {
+            gameHistory.push({
+                round: gameHistory.length + 1,
+                selectedDoor: currentGame.selectedDoor + 1,
+                openedDoor: currentGame.openedDoor + 1,
+                switched: currentGame.switched,
+                finalDoor: currentGame.finalDoor + 1,
+                carDoor: currentGame.carDoor + 1,
+                won: currentGame.won
+            });
+            
+            updateStats();
+        }
+        
+        // Modify updateStats to include chart update
+        function updateStats() {
+            const tbody = document.querySelector('#gameHistory tbody');
+            const lastGame = gameHistory[gameHistory.length - 1];
+            
+            // Add new row
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${lastGame.round}</td>
+                <td>${lastGame.selectedDoor}</td>
+                <td>${lastGame.openedDoor}</td>
+                <td>${lastGame.switched ? 'Sim' : 'Não'}</td>
+                <td>${lastGame.finalDoor}</td>
+                <td>${lastGame.carDoor}</td>
+                <td class="${lastGame.won ? 'win' : 'lose'}">${lastGame.won ? 'Vitoria' : 'Derrota'}</td>
+            `;
+            tbody.insertBefore(row, tbody.firstChild);
+            
+            // Limit history to 50 most recent games
+            while (tbody.children.length > 50) {
+                tbody.removeChild(tbody.lastChild);
+            }
+            
+            // Update summary
+            const totalGames = gameHistory.length;
+            const totalWins = gameHistory.filter(g => g.won).length;
+            const switchedGames = gameHistory.filter(g => g.switched);
+            const stayedGames = gameHistory.filter(g => !g.switched);
+            const switchedWins = switchedGames.filter(g => g.won).length;
+            const stayedWins = stayedGames.filter(g => g.won).length;
+            
+            document.getElementById('totalGames').textContent = totalGames;
+            document.getElementById('totalWins').textContent = totalWins;
+            document.getElementById('winRate').textContent = 
+                totalGames > 0 ? Math.round((totalWins / totalGames) * 100) + '%' : '0%';
+            document.getElementById('switchWinRate').textContent = 
+                switchedGames.length > 0 ? Math.round((switchedWins / switchedGames.length) * 100) + '%' : '0%';
+            document.getElementById('stayWinRate').textContent = 
+                stayedGames.length > 0 ? Math.round((stayedWins / stayedGames.length) * 100) + '%' : '0%';
+            
+            // Update chart
+            let wins = 0;
+            const chartData = gameHistory.map((game, index) => {
+                if (game.won) wins++;
+                return (wins / (index + 1)) * 100;
+            });
+            
+            winRateChart.data.labels = gameHistory.map((_, index) => index + 1);
+            winRateChart.data.datasets[0].data = chartData;
+            winRateChart.update();
+        }
+        
+        // Initialize chart when page loads
+        initChart();
+        
+        // Event listeners for play mode
+        doors.forEach((doorContainer, index) => {
+            doorContainer.addEventListener('click', () => {
+                if (gamePhase === 'selecting' && !doorContainer.classList.contains('disabled')) {
+                    selectDoor(index);
+                }
+            });
+        });
+        
+        switchBtn.addEventListener('click', () => makeDecision(true));
+        stayBtn.addEventListener('click', () => makeDecision(false));
+        newGameBtn.addEventListener('click', initGame);
+        
+        // Initialize first game
+        initGame();
+    </script>
+</body>
+</html>

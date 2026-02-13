@@ -1,0 +1,2824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construtor Json</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, #1f2a44 0%, #0f1420 45%, #090d16 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e5e7eb;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: rgba(18, 24, 38, 0.92);
+            border: 1px solid #2a3348;
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+        }
+
+        .header {
+            display: none;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0;
+            font-weight: 700;
+        }
+
+        .header p {
+            display: none;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 7fr 3fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .panel {
+            background: #131b2d;
+            border: 1px solid #2f3a52;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: none;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2f3a52;
+        }
+
+        .panel-title {
+            font-size: 1.5em;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: filter .2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary {
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .btn-success {
+            background: #0f766e;
+            color: #ffffff;
+        }
+
+        .btn-warning {
+            background: #ca8a04;
+            color: #ffffff;
+        }
+
+        .btn-danger {
+            background: #b91c1c;
+            color: #ffffff;
+        }
+
+        .btn-info {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .json-builder {
+            background: #0b1220;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid #334155;
+        }
+
+        .json-element {
+            margin: 10px 0;
+            padding: 15px;
+            background: #0f172a;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .json-element.selected {
+            border-left-color: #f59e0b;
+            background: #1f2937;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.4);
+        }
+
+        .json-element.array.selected {
+            border-left-color: #f59e0b;
+            background: #1f2937;
+        }
+
+        .selection-mode {
+            background: #b45309;
+            color: #ffffff;
+        }
+
+        .multi-selection-controls {
+            background: #1f2937;
+            border: 1px solid #b45309;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .multi-selection-controls.active {
+            display: block;
+        }
+
+        .json-element.array {
+            border-left-color: #14b8a6;
+            background: #111827;
+        }
+
+        .json-element.nested {
+            margin-left: 20px;
+        }
+
+        .json-element.dragging {
+            opacity: 0.4;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+            border-left-color: #60a5fa;
+            background: #1e293b;
+        }
+
+        .json-element.drop-target {
+            border: 2px dashed #2563eb;
+            background: #1e293b;
+            box-shadow: inset 0 0 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .edit-input {
+            padding: 6px 10px;
+            border: 1px solid #334155;
+            background: #0b1220;
+            color: #e2e8f0;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .edit-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .edit-controls {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .element-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .element-type {
+            font-weight: 600;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            word-break: break-all;
+        }
+
+        .element-controls {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: opacity 0.2s ease, max-height 0.2s ease;
+        }
+
+        .element-header:hover .element-controls {
+            opacity: 1;
+            max-height: 200px;
+        }
+
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: #93c5fd;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 4px;
+            transition: transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .collapse-btn:hover {
+            color: #bfdbfe;
+        }
+
+        .collapse-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .nested-content.collapsed {
+            display: none;
+        }
+
+        .mini-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .mini-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            align-items: center;
+        }
+
+        .input-group input, .input-group select {
+            padding: 8px 12px;
+            border: 1px solid #334155;
+            background: #0b1220;
+            color: #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .input-group input[type="text"] {
+            flex: 1;
+        }
+
+        .json-preview {
+            background: #0b1220;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            min-height: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #334155;
+        }
+
+        .status-bar {
+            display: none;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0ea5a3;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(14, 165, 163, 0.35);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(14, 165, 163, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+            }
+        }
+
+        .error {
+            background: #b91c1c;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 6, 23, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #131b2d;
+            border: 1px solid #2f3a52;
+            color: #e2e8f0;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #e2e8f0;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .move-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            display: none;
+        }
+
+        .move-indicator {
+            position: absolute;
+            background: #2563eb;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1001;
+        }
+
+        .location-selector {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #334155;
+            border-radius: 5px;
+            padding: 10px;
+            background: #0b1220;
+        }
+
+        .location-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 2px 0;
+            transition: background 0.2s;
+        }
+
+        .location-option:hover {
+            background: #1f2937;
+        }
+
+        .location-option.selected {
+            background: #1d4ed8;
+            color: white;
+        }
+
+        .location-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .breadcrumb {
+            background: #0b1220;
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #93c5fd;
+            margin-right: 5px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: #0f766e;
+        }
+
+        .toast.error {
+            background: #b91c1c;
+        }
+
+        /* Syntax highlighting for JSON preview */
+        .json-key {
+            color: #fda4af;
+        }
+
+        .json-string {
+            color: #86efac;
+        }
+
+        .json-number {
+            color: #fdba74;
+        }
+
+        .json-boolean {
+            color: #67e8f9;
+        }
+
+        .json-null {
+            color: #d8b4fe;
+        }
+
+        .json-punctuation {
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Construtor Json</h1>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Construtor</h2>
+                    <div class="element-controls">
+                        <button class="mini-btn btn-secondary" onclick="undo()" id="undoBtn" disabled>Desfazer</button>
+                        <button class="mini-btn btn-secondary" onclick="redo()" id="redoBtn" disabled>Refazer</button>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="currentPath = []; showAddArrayModal()">
+                        Adicionar Array
+                    </button>
+                    <button class="btn btn-success" onclick="currentPath = []; showAddKeyValueModal()">
+                        Adicionar Propriedade
+                    </button>
+                    <button class="btn btn-primary" onclick="currentPath = []; showAddObjectModal()">
+                        Adicionar Objeto
+                    </button>
+                    <button class="btn btn-info" onclick="showImportModal()">
+                        Importar JSON
+                    </button>
+                    <button class="btn btn-warning" onclick="clearAll()">
+                        Limpar Tudo
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleSelectionMode()" id="selectionBtn">
+                        Seleção Múltipla
+                    </button>
+                </div>
+
+                <div class="multi-selection-controls" id="multiSelectionControls">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span><strong>Modo Seleção Múltipla Ativo</strong></span>
+                        <span id="selectedCount">0 elementos selecionados</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-warning btn-sm" onclick="moveSelectedElements()">
+                            Mover Selecionados
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="removeSelectedElements()">
+                            Remover Selecionados
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="selectAll()">
+                            Selecionar Tudo
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="clearSelection()">
+                            Limpar Seleção
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleSelectionMode()">
+                            Sair do Modo Seleção
+                        </button>
+                    </div>
+                </div>
+
+                <div class="json-builder" id="jsonBuilder">
+                    <div style="text-align: center; color: #94a3b8; padding: 50px;">
+                        Clique nos botões acima para começar a construir seu JSON
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Visualização JSON</h2>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-info" onclick="copyToClipboard()">
+                        Copiar JSON
+                    </button>
+                    <button class="btn btn-success" onclick="downloadJSON()">
+                        Baixar JSON
+                    </button>
+                    <button class="btn btn-primary" onclick="formatJSON()">
+                        Formatar
+                    </button>
+                </div>
+
+                <div class="json-preview" id="jsonPreview">{}</div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">JSON válido</span>
+            </div>
+            <div>
+                <span id="elementCount">0 elementos</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="move-overlay" id="moveOverlay"></div>
+    <div class="move-indicator" id="moveIndicator" style="display: none;"></div>
+
+    <div class="modal" id="arrayModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Array</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="arrayName" placeholder="Nome do array (ex: usuarios, produtos)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('arrayModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addArray()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="keyValueModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Propriedade</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="keyName" placeholder="Nome da chave">
+                </div>
+                <div class="input-group">
+                    <select id="valueType" onchange="updateValueInput()">
+                        <option value="string">String (texto)</option>
+                        <option value="number">Número</option>
+                        <option value="boolean">Boolean (true/false)</option>
+                        <option value="null">Null</option>
+                    </select>
+                </div>
+                <div class="input-group" id="valueInputGroup">
+                    <input type="text" id="valueInput" placeholder="Valor">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('keyValueModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addKeyValue()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="objectModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Objeto</div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="objectName" placeholder="Nome do objeto (ex: usuario, config)">
+                </div>
+                <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                    Um objeto vazio será adicionado. Você pode adicionar propriedades a ele posteriormente.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('objectModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addObject()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">Importar JSON</div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; color: #94a3b8;">
+                    Cole seu JSON abaixo ou carregue um arquivo .json
+                </p>
+                
+                <div style="margin-bottom: 20px;">
+                    <label class="btn btn-primary" style="cursor: pointer;">
+                        Escolher Arquivo
+                        <input type="file" id="fileInput" accept=".json,application/json" style="display: none;" onchange="handleFileSelect(event)">
+                    </label>
+                    <span id="fileName" style="margin-left: 10px; color: #94a3b8;"></span>
+                </div>
+                
+                <div class="input-group" style="flex-direction: column;">
+                    <textarea id="jsonInput" placeholder='Cole seu JSON aqui... Ex: {"nome": "João", "idade": 30}' 
+                        style="width: 100%; min-height: 300px; padding: 15px; border: 1px solid #334155; 
+                        border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; background: #0b1220; color: #e2e8f0;"></textarea>
+                </div>
+                
+                <div id="importError" style="color: #dc3545; margin-top: 10px; display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('importModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="importJSON()">Importar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="moveModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">Mover Elemento</div>
+            <div class="modal-body">
+                <div class="breadcrumb" id="moveBreadcrumb"></div>
+                <p style="margin-bottom: 15px; color: #94a3b8;">
+                    Selecione o destino para mover o elemento:
+                </p>
+                <div class="location-selector" id="locationSelector">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('moveModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmMove()" id="confirmMoveBtn" disabled>Mover</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="addValueModal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Valor ao Array</div>
+            <div class="modal-body">
+                <p style="margin-bottom: 10px; color: #94a3b8; font-size: 14px;">
+                    Adicione um valor primitivo diretamente ao array.
+                </p>
+                <div class="input-group">
+                    <select id="arrayValueType" onchange="updateArrayValueInput()">
+                        <option value="string">String (texto)</option>
+                        <option value="number">Número</option>
+                        <option value="boolean">Boolean (true/false)</option>
+                        <option value="null">Null</option>
+                    </select>
+                </div>
+                <div class="input-group" id="arrayValueInputGroup">
+                    <input type="text" id="arrayValueInput" placeholder="Valor" class="edit-input" style="flex: 1;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addValueModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addValueToArray()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let jsonStructure = {};
+        let currentPath = [];
+        let history = [];
+        let historyIndex = -1;
+        let elementIdCounter = 0;
+        let moveData = null;
+        let selectedDestination = null;
+        
+        // Variáveis para seleção múltipla
+        let selectionMode = false;
+        let selectedElements = [];
+        let multiMoveData = [];
+
+        // Variáveis para drag-and-drop
+        let dragSourcePath = null;
+        let dragSourceKey = null;
+
+        // Limite de histórico para evitar uso excessivo de memória
+        const MAX_HISTORY = 100;
+
+        // Helper para escapar HTML em exibições
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Salvar estado no histórico
+        function saveState() {
+            history = history.slice(0, historyIndex + 1);
+            history.push({
+                structure: JSON.parse(JSON.stringify(jsonStructure)),
+                path: [...currentPath]
+            });
+            historyIndex++;
+            // Limitar tamanho do histórico
+            if (history.length > MAX_HISTORY) {
+                history = history.slice(history.length - MAX_HISTORY);
+                historyIndex = history.length - 1;
+            }
+            updateUndoRedoButtons();
+        }
+
+        // Atualizar botões de desfazer/refazer
+        function updateUndoRedoButtons() {
+            document.getElementById('undoBtn').disabled = historyIndex <= 0;
+            document.getElementById('redoBtn').disabled = historyIndex >= history.length - 1;
+        }
+
+        // Desfazer
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                const state = history[historyIndex];
+                jsonStructure = JSON.parse(JSON.stringify(state.structure));
+                currentPath = [...state.path];
+                updateBuilder();
+                updatePreview();
+                updateUndoRedoButtons();
+            }
+        }
+
+        // Refazer
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                const state = history[historyIndex];
+                jsonStructure = JSON.parse(JSON.stringify(state.structure));
+                currentPath = [...state.path];
+                updateBuilder();
+                updatePreview();
+                updateUndoRedoButtons();
+            }
+        }
+
+        // Funções de seleção múltipla
+        function toggleSelectionMode() {
+            selectionMode = !selectionMode;
+            const btn = document.getElementById('selectionBtn');
+            const controls = document.getElementById('multiSelectionControls');
+            
+            if (selectionMode) {
+                btn.textContent = 'Sair Seleção';
+                btn.classList.add('selection-mode');
+                controls.classList.add('active');
+                selectedElements = [];
+                updateSelectedCount();
+                showToast('Modo seleção múltipla ativado. Clique nos elementos para selecioná-los.', 'success');
+            } else {
+                btn.textContent = 'Seleção Múltipla';
+                btn.classList.remove('selection-mode');
+                controls.classList.remove('active');
+                clearSelection();
+                showToast('Modo seleção múltipla desativado.', 'success');
+            }
+        }
+
+        function selectElement(elementId, path, key) {
+            if (!selectionMode) return;
+            
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const index = selectedElements.findIndex(sel => sel.elementId === elementId);
+            
+            if (index > -1) {
+                // Desselecionar este e todos os filhos dentro dele
+                selectedElements.splice(index, 1);
+                element.classList.remove('selected');
+                // Desselecionar filhos aninhados
+                const childElements = element.querySelectorAll('.json-element');
+                childElements.forEach(child => {
+                    const childId = child.getAttribute('data-element-id');
+                    const childIdx = selectedElements.findIndex(sel => sel.elementId === childId);
+                    if (childIdx > -1) {
+                        selectedElements.splice(childIdx, 1);
+                        child.classList.remove('selected');
+                    }
+                });
+            } else {
+                // Selecionar este elemento
+                selectedElements.push({ 
+                    elementId, 
+                    path: path, 
+                    key: key 
+                });
+                element.classList.add('selected');
+                // Selecionar todos os filhos aninhados automaticamente
+                const childElements = element.querySelectorAll('.json-element');
+                childElements.forEach(child => {
+                    const childId = child.getAttribute('data-element-id');
+                    const childPathStr = child.getAttribute('data-element-path');
+                    const childKey = child.getAttribute('data-element-key');
+                    if (childId && !selectedElements.find(sel => sel.elementId === childId)) {
+                        try {
+                            const childPath = JSON.parse(childPathStr);
+                            selectedElements.push({ elementId: childId, path: childPath, key: childKey });
+                            child.classList.add('selected');
+                        } catch(e) {}
+                    }
+                });
+            }
+            
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedElements.length;
+            document.getElementById('selectedCount').textContent = `${count} elemento${count !== 1 ? 's' : ''} selecionado${count !== 1 ? 's' : ''}`;
+        }
+
+        function clearSelection() {
+            selectedElements.forEach(sel => {
+                const element = document.getElementById(sel.elementId);
+                if (element) element.classList.remove('selected');
+            });
+            selectedElements = [];
+            updateSelectedCount();
+        }
+
+        function selectAll() {
+            if (!selectionMode) return;
+            
+            clearSelection();
+            document.querySelectorAll('.json-element').forEach(element => {
+                const elementId = element.getAttribute('data-element-id');
+                const pathStr = element.getAttribute('data-element-path');
+                const key = element.getAttribute('data-element-key');
+                
+                if (elementId && pathStr && key !== null) {
+                    try {
+                        const path = JSON.parse(pathStr);
+                        
+                        selectedElements.push({ 
+                            elementId, 
+                            path: path, 
+                            key: key 
+                        });
+                        element.classList.add('selected');
+                    } catch (error) {
+                        console.error('Erro ao selecionar elemento:', error);
+                    }
+                }
+            });
+            updateSelectedCount();
+        }
+
+        function removeSelectedElements() {
+            if (selectedElements.length === 0) {
+                showToast('Nenhum elemento selecionado.', 'error');
+                return;
+            }
+
+            if (confirm(`Tem certeza que deseja remover ${selectedElements.length} elemento(s) selecionado(s)?`)) {
+                saveState();
+                
+                try {
+                    // Filtrar: só remover pais de nível mais alto (filhos vão junto)
+                    const topLevel = filterTopLevelSelected();
+                    // Ordenar por profundidade para remover do mais profundo para o mais raso
+                    // e por índice decrescente para arrays
+                    const sortedElements = topLevel.sort((a, b) => {
+                        const depthDiff = b.path.length - a.path.length;
+                        if (depthDiff !== 0) return depthDiff;
+                        
+                        // Se estão na mesma profundidade e são arrays, ordenar por índice decrescente
+                        const aParent = getParentObject(a.path);
+                        if (Array.isArray(aParent)) {
+                            return parseInt(b.key) - parseInt(a.key);
+                        }
+                        return 0;
+                    });
+                    
+                    sortedElements.forEach(sel => {
+                        try {
+                            removeElementFromStructure(sel.path, sel.key);
+                        } catch (error) {
+                            console.error('Erro ao remover elemento:', error, sel);
+                        }
+                    });
+                    
+                    clearSelection();
+                    updateBuilder();
+                    updatePreview();
+                    showToast(`${sortedElements.length} elemento(s) removido(s) com sucesso.`, 'success');
+                    
+                } catch (error) {
+                    console.error('Erro na remoção múltipla:', error);
+                    showToast('Erro ao remover alguns elementos.', 'error');
+                }
+            }
+        }
+
+        // Função auxiliar para obter o objeto pai
+        function getParentObject(path) {
+            let obj = jsonStructure;
+            for (let i = 0; i < path.length; i++) {
+                obj = obj[path[i]];
+            }
+            return obj;
+        }
+
+        // Filtra elementos selecionados removendo filhos de pais que já estão selecionados
+        function filterTopLevelSelected() {
+            return selectedElements.filter(sel => {
+                const selFullPath = [...sel.path, sel.key];
+                // Verificar se algum outro selecionado é ancestral deste
+                return !selectedElements.some(other => {
+                    if (other.elementId === sel.elementId) return false;
+                    const otherFullPath = [...other.path, other.key];
+                    // other é ancestral de sel se otherFullPath é prefixo de selFullPath
+                    if (otherFullPath.length >= selFullPath.length) return false;
+                    return otherFullPath.every((part, i) => String(part) === String(selFullPath[i]));
+                });
+            });
+        }
+
+        function moveSelectedElements() {
+            if (selectedElements.length === 0) {
+                showToast('Nenhum elemento selecionado.', 'error');
+                return;
+            }
+
+            // Filtrar: só mover pais de nível mais alto (filhos vão junto)
+            const topLevel = filterTopLevelSelected();
+
+            // Preparar dados para movimento múltiplo
+            multiMoveData = topLevel.map(sel => {
+                try {
+                    return {
+                        path: sel.path,
+                        key: sel.key,
+                        element: getElementByPath(sel.path, sel.key)
+                    };
+                } catch (error) {
+                    console.error('Erro ao obter elemento:', error, sel);
+                    return null;
+                }
+            }).filter(item => item !== null); // Filtrar itens inválidos
+
+            if (multiMoveData.length === 0) {
+                showToast('Erro ao preparar elementos para movimento.', 'error');
+                return;
+            }
+
+            // Limpar dados de movimento único
+            moveData = null;
+            
+            showMultiMoveModal();
+        }
+
+        function showMultiMoveModal() {
+            const modal = document.getElementById('moveModal');
+            const breadcrumb = document.getElementById('moveBreadcrumb');
+            const selector = document.getElementById('locationSelector');
+            
+            breadcrumb.textContent = `Movendo ${multiMoveData.length} elemento(s) selecionado(s)`;
+            generateLocationOptions(selector);
+            modal.style.display = 'flex';
+        }
+
+        function confirmMultiMove() {
+            if (!multiMoveData || multiMoveData.length === 0 || !selectedDestination) return;
+            
+            try {
+                saveState();
+                
+                // Coletar elementos e remover do local original (ordenar por profundidade decrescente para evitar problemas de índice)
+                const sortedData = multiMoveData.sort((a, b) => {
+                    // Primeiro por profundidade (mais profundo primeiro)
+                    const depthDiff = b.path.length - a.path.length;
+                    if (depthDiff !== 0) return depthDiff;
+                    
+                    // Depois por índice (maior primeiro, se forem arrays)
+                    const aParent = getParentObject(a.path);
+                    if (Array.isArray(aParent)) {
+                        return parseInt(b.key) - parseInt(a.key);
+                    }
+                    return 0;
+                });
+                
+                const elementsToMove = sortedData.map(data => ({
+                    key: data.key,
+                    element: JSON.parse(JSON.stringify(data.element))
+                }));
+                
+                // Remover elementos originais
+                sortedData.forEach(data => {
+                    removeElementFromStructure(data.path, data.key);
+                });
+                
+                // Adicionar elementos no novo destino
+                elementsToMove.forEach(item => {
+                    addElementToDestination(selectedDestination, item.key, item.element);
+                });
+                
+                clearSelection();
+                multiMoveData = [];
+                updateBuilder();
+                updatePreview();
+                closeModal('moveModal');
+                showToast(`${elementsToMove.length} elemento(s) movido(s) com sucesso!`, 'success');
+                
+            } catch (error) {
+                console.error('Erro ao mover elementos:', error);
+                showToast('Erro ao mover elementos: ' + error.message, 'error');
+            }
+        }
+
+        function startMove(path, key, elementType) {
+            moveData = {
+                path: path,
+                key: key,
+                type: elementType,
+                element: getElementByPath(path, key)
+            };
+            
+            showMoveModal();
+        }
+
+        // Obter elemento por caminho
+        function getElementByPath(path, key) {
+            try {
+                let obj = jsonStructure;
+                for (let i = 0; i < path.length; i++) {
+                    if (obj === null || obj === undefined) {
+                        throw new Error(`Caminho inválido no índice ${i}`);
+                    }
+                    obj = obj[path[i]];
+                }
+                
+                if (obj === null || obj === undefined) {
+                    throw new Error('Objeto pai não encontrado');
+                }
+                
+                // Verificar se key é um número (para arrays) ou string
+                const keyToUse = Array.isArray(obj) ? parseInt(key) : key;
+                
+                return obj[keyToUse];
+            } catch (error) {
+                console.error('Erro em getElementByPath:', error, { path, key });
+                throw error;
+            }
+        }
+
+        // Mostrar modal de movimento
+        function showMoveModal() {
+            if (!moveData) return;
+            
+            const modal = document.getElementById('moveModal');
+            const breadcrumb = document.getElementById('moveBreadcrumb');
+            const selector = document.getElementById('locationSelector');
+            
+            // Atualizar breadcrumb
+            const pathStr = moveData.path.length > 0 ? moveData.path.join(' → ') : 'Raiz';
+            breadcrumb.textContent = `Movendo: ${pathStr} → ${moveData.key}`;
+            
+            // Gerar opções de destino
+            generateLocationOptions(selector);
+            
+            modal.style.display = 'flex';
+        }
+
+        // Gerar opções de localização
+        function generateLocationOptions(container) {
+            container.innerHTML = '';
+            selectedDestination = null;
+            document.getElementById('confirmMoveBtn').disabled = true;
+            
+            // Adicionar opção de raiz
+            const rootOption = document.createElement('div');
+            rootOption.className = 'location-option';
+            rootOption.textContent = 'Raiz do JSON';
+            rootOption.onclick = () => selectDestination([], 'root', rootOption);
+            container.appendChild(rootOption);
+            
+            // Adicionar outras opções recursivamente
+            addLocationOptionsRecursive(jsonStructure, [], container, 0);
+        }
+
+        // Adicionar opções de localização recursivamente
+        function addLocationOptionsRecursive(obj, path, container, depth) {
+            const indent = '　'.repeat(depth);
+            
+            Object.keys(obj).forEach(key => {
+                const value = obj[key];
+                const currentPath = [...path, key];
+                
+                // Verificar se não é o próprio elemento sendo movido (movimento único)
+                if (moveData && JSON.stringify(currentPath) === JSON.stringify([...moveData.path, moveData.key])) {
+                    return;
+                }
+                
+                // Verificar se não é um dos elementos sendo movidos (movimento múltiplo)
+                if (multiMoveData && multiMoveData.length > 0) {
+                    const isBeingMoved = multiMoveData.some(data => 
+                        JSON.stringify(currentPath) === JSON.stringify([...data.path, data.key])
+                    );
+                    if (isBeingMoved) return;
+                }
+                
+                // Verificar se não é um caminho pai do elemento sendo movido (movimento único)
+                if (moveData) {
+                    const movePath = [...moveData.path, moveData.key];
+                    const isChildOfMoved = currentPath.length > movePath.length ? false :
+                        movePath.slice(0, currentPath.length).every((p, i) => String(p) === String(currentPath[i]));
+                    // Não bloquear pais, apenas o próprio elemento (já filtrado acima)
+                }
+                
+                // Verificar se não é um caminho pai de algum elemento sendo movido (movimento múltiplo)
+                if (multiMoveData && multiMoveData.length > 0) {
+                    const isParentOfAny = multiMoveData.some(data => {
+                        const movePath = [...data.path, data.key];
+                        return currentPath.length < movePath.length &&
+                            movePath.slice(0, currentPath.length).every((p, i) => String(p) === String(currentPath[i]));
+                    });
+                    // Pais não são bloqueados como destino
+                }
+                
+                if (Array.isArray(value)) {
+                    const option = document.createElement('div');
+                    option.className = 'location-option';
+                    option.innerHTML = `${indent}${escapeHtml(key)} (Array)`;
+                    option.onclick = () => selectDestination(currentPath, 'array', option);
+                    container.appendChild(option);
+                    
+                    // Adicionar opções dos elementos do array
+                    value.forEach((item, index) => {
+                        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+                            const itemPath = [...currentPath, index];
+                            const itemOption = document.createElement('div');
+                            itemOption.className = 'location-option';
+                            itemOption.innerHTML = `${indent}　[${index}] (Objeto)`;
+                            itemOption.onclick = () => selectDestination(itemPath, 'object', itemOption);
+                            container.appendChild(itemOption);
+                            
+                            // Recursão para objetos dentro de arrays
+                            addLocationOptionsRecursive(item, itemPath, container, depth + 2);
+                        } else if (Array.isArray(item)) {
+                            const itemPath = [...currentPath, index];
+                            const itemOption = document.createElement('div');
+                            itemOption.className = 'location-option';
+                            itemOption.innerHTML = `${indent}　[${index}] (Array)`;
+                            itemOption.onclick = () => selectDestination(itemPath, 'array', itemOption);
+                            container.appendChild(itemOption);
+                            
+                            // Recursão para arrays aninhados
+                            addLocationOptionsRecursive(item, itemPath, container, depth + 2);
+                        }
+                    });
+                    
+                } else if (typeof value === 'object' && value !== null) {
+                    const option = document.createElement('div');
+                    option.className = 'location-option';
+                    option.innerHTML = `${indent}${escapeHtml(key)} (Objeto)`;
+                    option.onclick = () => selectDestination(currentPath, 'object', option);
+                    container.appendChild(option);
+                    
+                    // Recursão para objetos aninhados
+                    addLocationOptionsRecursive(value, currentPath, container, depth + 1);
+                }
+            });
+        }
+
+        // Selecionar destino
+        function selectDestination(path, type, element) {
+            // Remover seleção anterior
+            document.querySelectorAll('.location-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Adicionar seleção atual
+            element.classList.add('selected');
+            
+            selectedDestination = { path, type };
+            document.getElementById('confirmMoveBtn').disabled = false;
+        }
+
+        // Confirmar movimento
+        function confirmMove() {
+            // Despachar para movimento múltiplo se necessário
+            if (multiMoveData && multiMoveData.length > 0 && selectedDestination) {
+                confirmMultiMove();
+                return;
+            }
+            if (!moveData || !selectedDestination) return;
+            
+            try {
+                saveState();
+                
+                // Obter o elemento a ser movido
+                const elementToMove = JSON.parse(JSON.stringify(moveData.element));
+                
+                // Remover do local original
+                removeElementFromStructure(moveData.path, moveData.key);
+                
+                // Adicionar no novo local
+                addElementToDestination(selectedDestination, moveData.key, elementToMove);
+                
+                // Atualizar interface
+                updateBuilder();
+                updatePreview();
+                closeModal('moveModal');
+                showToast('Elemento movido com sucesso!', 'success');
+                
+            } catch (error) {
+                showToast('Erro ao mover elemento: ' + error.message, 'error');
+            }
+            
+            moveData = null;
+            selectedDestination = null;
+        }
+
+        // Remover elemento da estrutura
+        function removeElementFromStructure(path, key) {
+            try {
+                let obj = jsonStructure;
+                for (let i = 0; i < path.length; i++) {
+                    obj = obj[path[i]];
+                }
+                
+                if (Array.isArray(obj)) {
+                    const index = parseInt(key);
+                    if (index >= 0 && index < obj.length) {
+                        obj.splice(index, 1);
+                    }
+                } else {
+                    delete obj[key];
+                }
+            } catch (error) {
+                console.error('Erro ao remover elemento:', error, { path, key });
+                throw error;
+            }
+        }
+
+        // Adicionar elemento ao destino
+        function addElementToDestination(destination, originalKey, element) {
+            try {
+                let targetObj = jsonStructure;
+                
+                // Navegar até o destino
+                for (let i = 0; i < destination.path.length; i++) {
+                    targetObj = targetObj[destination.path[i]];
+                }
+                
+                if (destination.type === 'array') {
+                    if (Array.isArray(targetObj)) {
+                        targetObj.push(element);
+                    } else {
+                        throw new Error('Destino não é um array');
+                    }
+                } else if (destination.type === 'object') {
+                    if (typeof targetObj === 'object' && targetObj !== null && !Array.isArray(targetObj)) {
+                        // Verificar se a chave já existe e gerar uma nova se necessário
+                        let newKey = originalKey;
+                        let counter = 1;
+                        while (targetObj[newKey] !== undefined) {
+                            newKey = `${originalKey}_${counter}`;
+                            counter++;
+                        }
+                        targetObj[newKey] = element;
+                    } else {
+                        throw new Error('Destino não é um objeto');
+                    }
+                } else if (destination.type === 'root') {
+                    // Adicionar na raiz
+                    let newKey = originalKey;
+                    let counter = 1;
+                    while (jsonStructure[newKey] !== undefined) {
+                        newKey = `${originalKey}_${counter}`;
+                        counter++;
+                    }
+                    jsonStructure[newKey] = element;
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar elemento ao destino:', error, { destination, originalKey, element });
+                throw error;
+            }
+        }
+
+        // Mostrar modal de importação
+        function showImportModal() {
+            document.getElementById('importModal').style.display = 'flex';
+            document.getElementById('jsonInput').value = '';
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('importError').style.display = 'none';
+            document.getElementById('jsonInput').focus();
+        }
+
+        // Lidar com seleção de arquivo
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('jsonInput').value = e.target.result;
+                };
+                reader.onerror = function() {
+                    showImportError('Erro ao ler o arquivo');
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Mostrar erro de importação
+        function showImportError(message) {
+            const errorDiv = document.getElementById('importError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Importar JSON
+        function importJSON() {
+            const jsonInput = document.getElementById('jsonInput').value.trim();
+            
+            if (!jsonInput) {
+                showImportError('Por favor, cole um JSON ou selecione um arquivo');
+                return;
+            }
+
+            try {
+                const parsedJSON = JSON.parse(jsonInput);
+                
+                if (typeof parsedJSON !== 'object' || parsedJSON === null) {
+                    showImportError('O JSON deve ser um objeto ou array');
+                    return;
+                }
+                
+                if (Object.keys(jsonStructure).length > 0 && !Array.isArray(jsonStructure) && !Array.isArray(parsedJSON)) {
+                    if (confirm('Deseja substituir o JSON atual? Clique em "Cancelar" para mesclar com o existente.')) {
+                        saveState();
+                        jsonStructure = parsedJSON;
+                    } else {
+                        saveState();
+                        Object.assign(jsonStructure, parsedJSON);
+                    }
+                } else {
+                    saveState();
+                    jsonStructure = parsedJSON;
+                }
+                
+                currentPath = [];
+                closeModal('importModal');
+                updateBuilder();
+                updatePreview();
+                showToast('JSON importado com sucesso!', 'success');
+                
+            } catch (error) {
+                showImportError('JSON inválido: ' + error.message);
+            }
+        }
+
+        // Obter objeto atual baseado no caminho
+        function getCurrentObject() {
+            let obj = jsonStructure;
+            for (let key of currentPath) {
+                obj = obj[key];
+            }
+            return obj;
+        }
+
+        // Mostrar modais de adição
+        function showAddArrayModal() {
+            document.getElementById('arrayModal').style.display = 'flex';
+            document.getElementById('arrayName').value = '';
+            document.getElementById('arrayName').focus();
+        }
+
+        function showAddKeyValueModal() {
+            document.getElementById('keyValueModal').style.display = 'flex';
+            document.getElementById('keyName').value = '';
+            document.getElementById('valueType').value = 'string';
+            updateValueInput();
+            document.getElementById('keyName').focus();
+        }
+
+        function showAddObjectModal() {
+            const modal = document.getElementById('objectModal');
+            const current = getCurrentObject();
+            const isArray = Array.isArray(current);
+            
+            // Ajustar o modal baseado no contexto
+            const modalBody = modal.querySelector('.modal-body');
+            if (isArray) {
+                modalBody.innerHTML = `
+                    <p style="color: #666; font-size: 14px;">
+                        Um objeto vazio será adicionado ao array. Você pode adicionar propriedades a ele posteriormente.
+                    </p>
+                `;
+            } else {
+                modalBody.innerHTML = `
+                    <div class="input-group">
+                        <input type="text" id="objectName" placeholder="Nome do objeto (ex: usuario, config)">
+                    </div>
+                    <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                        Um objeto vazio será adicionado. Você pode adicionar propriedades a ele posteriormente.
+                    </p>
+                `;
+            }
+            
+            modal.style.display = 'flex';
+            
+            if (!isArray) {
+                document.getElementById('objectName').value = '';
+                document.getElementById('objectName').focus();
+            }
+        }
+
+        // Fechar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            
+            // Limpar dados de movimento quando fechar modal de movimento
+            if (modalId === 'moveModal') {
+                moveData = null;
+                multiMoveData = [];
+                selectedDestination = null;
+            }
+        }
+
+        // Atualizar input de valor baseado no tipo
+        function updateValueInput() {
+            const type = document.getElementById('valueType').value;
+            const valueInputGroup = document.getElementById('valueInputGroup');
+            const valueInputContainer = document.getElementById('valueInputGroup');
+            valueInputContainer.style.display = 'flex';
+
+            let newHtml = '';
+            if (type === 'null') {
+                valueInputContainer.style.display = 'none';
+            } else if (type === 'boolean') {
+                newHtml = `
+                    <select id="valueInput" class="edit-input" style="flex: 1;">
+                        <option value="true">true</option>
+                        <option value="false">false</option>
+                    </select>
+                `;
+            } else if (type === 'number') {
+                newHtml = `<input type="number" id="valueInput" placeholder="Valor numérico" step="any" class="edit-input" style="flex: 1;">`;
+            } else { // string
+                newHtml = `<input type="text" id="valueInput" placeholder="Valor" class="edit-input" style="flex: 1;">`;
+            }
+            valueInputGroup.innerHTML = newHtml;
+        }
+
+        // Adicionar array
+        function addArray() {
+            const arrayName = document.getElementById('arrayName').value.trim();
+            if (!arrayName) {
+                showToast('Por favor, insira um nome para o array', 'error');
+                return;
+            }
+
+            const current = getCurrentObject();
+            if (current[arrayName] !== undefined) {
+                showToast('Já existe uma propriedade com esse nome', 'error');
+                return;
+            }
+
+            saveState();
+            current[arrayName] = [];
+            closeModal('arrayModal');
+            updateBuilder();
+            updatePreview();
+            showToast('Array adicionado com sucesso', 'success');
+        }
+
+        // Adicionar objeto vazio na raiz ou contexto atual
+        function addObject() {
+            const objectNameEl = document.getElementById('objectName');
+            const objectName = objectNameEl ? objectNameEl.value.trim() : '';
+            
+            const current = getCurrentObject();
+            
+            if (Array.isArray(current)) {
+                // Se o contexto atual for um array, adicionar objeto sem nome
+                saveState();
+                current.push({});
+                closeModal('objectModal');
+                updateBuilder();
+                updatePreview();
+                showToast('Objeto vazio adicionado ao array', 'success');
+            } else {
+                // Se for um objeto, necessário nome
+                if (!objectName) {
+                    showToast('Por favor, insira um nome para o objeto', 'error');
+                    return;
+                }
+
+                if (current[objectName] !== undefined) {
+                    showToast('Já existe uma propriedade com esse nome', 'error');
+                    return;
+                }
+
+                saveState();
+                current[objectName] = {};
+                closeModal('objectModal');
+                updateBuilder();
+                updatePreview();
+                showToast('Objeto adicionado com sucesso', 'success');
+            }
+        }
+
+        // Adicionar key-value
+        function addKeyValue() {
+            const keyName = document.getElementById('keyName').value.trim();
+            const valueType = document.getElementById('valueType').value;
+            
+            if (!keyName) {
+                showToast('Por favor, insira um nome para a chave', 'error');
+                return;
+            }
+            
+            let value;
+            if (valueType === 'null') {
+                value = null;
+            } else {
+                const valueInput = document.getElementById('valueInput');
+                if (valueType === 'number') {
+                    value = parseFloat(valueInput.value) || 0;
+                } else if (valueType === 'boolean') {
+                    value = valueInput.value === 'true';
+                } else {
+                    value = valueInput.value;
+                }
+            }
+
+            const current = getCurrentObject();
+            if (Array.isArray(current)) {
+                const newObj = {};
+                newObj[keyName] = value;
+                saveState();
+                current.push(newObj);
+            } else {
+                if (current[keyName] !== undefined) {
+                    showToast('Já existe uma propriedade com esse nome', 'error');
+                    return;
+                }
+                saveState();
+                current[keyName] = value;
+            }
+
+            closeModal('keyValueModal');
+            updateBuilder();
+            updatePreview();
+            showToast('Propriedade adicionada com sucesso', 'success');
+        }
+
+        // Adicionar valor primitivo diretamente a um array
+        function showAddValueToArrayModal(path) {
+            currentPath = path;
+            document.getElementById('addValueModal').style.display = 'flex';
+            document.getElementById('arrayValueType').value = 'string';
+            updateArrayValueInput();
+            const input = document.getElementById('arrayValueInput');
+            if (input) input.focus();
+        }
+
+        function updateArrayValueInput() {
+            const type = document.getElementById('arrayValueType').value;
+            const container = document.getElementById('arrayValueInputGroup');
+            container.style.display = 'flex';
+
+            let html = '';
+            if (type === 'null') {
+                container.style.display = 'none';
+            } else if (type === 'boolean') {
+                html = `<select id="arrayValueInput" class="edit-input" style="flex: 1;">
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>`;
+            } else if (type === 'number') {
+                html = `<input type="number" id="arrayValueInput" placeholder="Valor numérico" step="any" class="edit-input" style="flex: 1;">`;
+            } else {
+                html = `<input type="text" id="arrayValueInput" placeholder="Valor" class="edit-input" style="flex: 1;">`;
+            }
+            container.innerHTML = html;
+        }
+
+        function addValueToArray() {
+            const type = document.getElementById('arrayValueType').value;
+            let value;
+
+            if (type === 'null') {
+                value = null;
+            } else {
+                const input = document.getElementById('arrayValueInput');
+                if (type === 'number') {
+                    value = parseFloat(input.value) || 0;
+                } else if (type === 'boolean') {
+                    value = input.value === 'true';
+                } else {
+                    value = input.value;
+                }
+            }
+
+            const current = getCurrentObject();
+            if (Array.isArray(current)) {
+                saveState();
+                current.push(value);
+                closeModal('addValueModal');
+                currentPath = [];
+                updateBuilder();
+                updatePreview();
+                showToast('Valor adicionado ao array', 'success');
+            } else {
+                showToast('O contexto atual não é um array', 'error');
+            }
+        }
+
+        // Adicionar objeto vazio a um array ou dentro de um objeto existente
+        function addEmptyObject() {
+            const current = getCurrentObject();
+            if (Array.isArray(current)) {
+                saveState();
+                current.push({});
+                closeModal('objectModal');
+                updateBuilder();
+                updatePreview();
+                showToast('Objeto vazio adicionado com sucesso', 'success');
+            } else {
+                // Se não for array, tratar como adição de objeto nomeado
+                addObject();
+            }
+        }
+        
+        // Funções de atalho para adicionar elementos aninhados
+        function addToArray(path) {
+            currentPath = path;
+            showAddKeyValueModal();
+        }
+        function addObjectToArray(path) {
+            currentPath = path;
+            showAddObjectModal();
+        }
+        function addNestedArray(path) {
+            currentPath = path;
+            showAddArrayModal();
+        }
+
+        // Remover elemento
+        function removeElement(path, key) {
+            let obj = jsonStructure;
+            for (let i = 0; i < path.length; i++) {
+                obj = obj[path[i]];
+            }
+            
+            saveState();
+            
+            if (Array.isArray(obj)) {
+                obj.splice(parseInt(key), 1);
+            } else {
+                delete obj[key];
+            }
+            
+            updateBuilder();
+            updatePreview();
+            showToast('Elemento removido', 'success');
+        }
+
+        // Atualizar construtor visual
+        function updateBuilder() {
+            const builder = document.getElementById('jsonBuilder');
+            builder.innerHTML = '';
+            
+            if (Object.keys(jsonStructure).length === 0 && !Array.isArray(jsonStructure)) {
+                builder.innerHTML = `
+                    <div style="text-align: center; color: #999; padding: 50px;">
+                        Clique nos botões acima para começar a construir seu JSON
+                    </div>
+                `;
+                updateElementCount();
+                return;
+            }
+
+            renderObject(jsonStructure, builder, []);
+            updateElementCount();
+            
+            // Limpar seleção se o modo de seleção estiver ativo
+            if (selectionMode) {
+                selectedElements = [];
+                updateSelectedCount();
+            }
+        }
+        
+        // --- INÍCIO DA NOVA LÓGICA DE EDIÇÃO UNIFICADA ---
+
+        // Inicia o processo de edição para qualquer par chave-valor ou item de array.
+        function startEditing(button) {
+            const elementNode = button.closest('.json-element');
+            if (!elementNode) {
+                showToast('Não foi possível encontrar o elemento para editar.', 'error');
+                return;
+            }
+
+            const pathStr = elementNode.getAttribute('data-element-path');
+            const keyOrIndex = elementNode.getAttribute('data-element-key');
+            const path = JSON.parse(pathStr);
+
+            let parentObject = jsonStructure;
+            for (const p of path) {
+                parentObject = parentObject[p];
+            }
+            
+            const isArrayItem = Array.isArray(parentObject);
+            const currentValue = parentObject[keyOrIndex];
+            
+            // Verificar se o valor é um objeto ou array complexo
+            const isComplexValue = typeof currentValue === 'object' && currentValue !== null;
+            
+            if (isComplexValue) {
+                // Para objetos e arrays, apenas permitir edição do nome/chave
+                if (isArrayItem) {
+                    showToast('Não é possível editar diretamente arrays ou objetos dentro de arrays. Use os botões específicos para adicionar/remover elementos.', 'error');
+                    return;
+                }
+                startEditingComplexValue(elementNode, path, keyOrIndex, currentValue);
+            } else {
+                // Para valores primitivos
+                startEditingPrimitiveValue(elementNode, path, keyOrIndex, currentValue, isArrayItem);
+            }
+        }
+
+        // Edição de valores complexos (objetos/arrays) - apenas o nome da chave
+        function startEditingComplexValue(elementNode, path, keyOrIndex, currentValue) {
+            const elementHeader = elementNode.querySelector('.element-header');
+            if (!elementHeader) return;
+
+            elementHeader.setAttribute('data-original-html', elementHeader.innerHTML);
+
+            const valueType = Array.isArray(currentValue) ? 'array' : 'object';
+            const valueDisplay = Array.isArray(currentValue) ? `Array [${currentValue.length} items]` : 'Objeto';
+
+            const editControlsHtml = `
+                <div class="edit-controls" style="margin-top: 10px;">
+                    <button class="mini-btn btn-success" onclick='saveComplexChanges(this, ${JSON.stringify(path)}, "${escapeHtml(keyOrIndex)}")'>✓ Salvar Nome</button>
+                    <button class="mini-btn btn-secondary" onclick="cancelChanges(this)">✗ Cancelar</button>
+                </div>`;
+
+            elementHeader.innerHTML = `
+                <div style="width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" class="edit-input" id="edit-key-input" value="${escapeHtml(keyOrIndex)}" placeholder="Nome" style="width: 200px;">
+                        <span>: ${valueDisplay}</span>
+                    </div>
+                    ${editControlsHtml}
+                </div>`;
+            
+            const keyInput = document.getElementById('edit-key-input');
+            if (keyInput) {
+                keyInput.focus();
+                keyInput.select();
+            }
+        }
+
+        // Edição de valores primitivos
+        function startEditingPrimitiveValue(elementNode, path, keyOrIndex, currentValue, isArrayItem) {
+            const elementHeader = elementNode.querySelector('.element-header');
+            if (!elementHeader) return;
+
+            elementHeader.setAttribute('data-original-html', elementHeader.innerHTML);
+
+            // A chave (nome da propriedade) é editável em objetos, mas o índice não é em arrays.
+            const keyInputHtml = !isArrayItem
+                ? `<input type="text" class="edit-input" id="edit-key-input" value="${escapeHtml(keyOrIndex)}" placeholder="Chave" style="width: 150px;"> : `
+                : `<span>[${keyOrIndex}]:</span>`;
+
+            // Determina o tipo do valor atual
+            let valueType = 'string';
+            if (currentValue === null) valueType = 'null';
+            else if (typeof currentValue === 'boolean') valueType = 'boolean';
+            else if (typeof currentValue === 'number') valueType = 'number';
+
+            // Cria o campo de input apropriado para o valor
+            let valueInputHtml = '';
+            if (valueType === 'null') {
+                valueInputHtml = '<span id="edit-value-container" style="color: #666;">null</span>';
+            } else if (valueType === 'boolean') {
+                valueInputHtml = `
+                    <span id="edit-value-container">
+                        <select class="edit-input" id="edit-value-input">
+                            <option value="true" ${currentValue === true ? 'selected' : ''}>true</option>
+                            <option value="false" ${currentValue === false ? 'selected' : ''}>false</option>
+                        </select>
+                    </span>`;
+            } else { // string ou número
+                const escapedValue = String(currentValue).replace(/"/g, '&quot;');
+                valueInputHtml = `
+                    <span id="edit-value-container">
+                        <input type="${valueType === 'number' ? 'number' : 'text'}" 
+                               class="edit-input" 
+                               id="edit-value-input" 
+                               value="${escapedValue}" 
+                               ${valueType === 'number' ? 'step="any"' : ''}
+                               style="flex: 1;">
+                    </span>`;
+            }
+
+            // Cria os botões de Salvar/Cancelar
+            const editControlsHtml = `
+                <div class="edit-controls" style="margin-top: 10px;">
+                    <button class="mini-btn btn-success" onclick='saveChanges(this, ${JSON.stringify(path)}, "${escapeHtml(keyOrIndex)}")'>✓ Salvar</button>
+                    <button class="mini-btn btn-secondary" onclick="cancelChanges(this)">✗ Cancelar</button>
+                </div>`;
+
+            // Monta a interface de edição completa
+            elementHeader.innerHTML = `
+                <div style="width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        ${keyInputHtml}
+                        ${valueInputHtml}
+                        <select class="edit-input" id="edit-type-select" onchange="updateEditInputType()" style="width: 100px;">
+                            <option value="string" ${valueType === 'string' ? 'selected' : ''}>String</option>
+                            <option value="number" ${valueType === 'number' ? 'selected' : ''}>Número</option>
+                            <option value="boolean" ${valueType === 'boolean' ? 'selected' : ''}>Boolean</option>
+                            <option value="null" ${valueType === 'null' ? 'selected' : ''}>Null</option>
+                        </select>
+                    </div>
+                    ${editControlsHtml}
+                </div>`;
+            
+            // Foca no primeiro campo de input disponível
+            const keyInput = document.getElementById('edit-key-input');
+            if (keyInput) {
+                keyInput.focus();
+                keyInput.select();
+            } else {
+                const valueInput = document.getElementById('edit-value-input');
+                if (valueInput) {
+                    valueInput.focus();
+                    if(valueInput.select) valueInput.select();
+                }
+            }
+        }
+
+        // Salvar alterações para valores complexos (apenas nome)
+        function saveComplexChanges(button, path, oldKey) {
+            const elementHeader = button.closest('.element-header');
+            if (!elementHeader) return;
+
+            let parentObject = jsonStructure;
+            for (const p of path) {
+                parentObject = parentObject[p];
+            }
+
+            const keyInput = document.getElementById('edit-key-input');
+            const newKey = keyInput.value.trim();
+            
+            if (!newKey) {
+                showToast('O nome não pode estar vazio.', 'error');
+                return;
+            }
+            
+            if (newKey !== oldKey && parentObject.hasOwnProperty(newKey)) {
+                showToast('Já existe uma propriedade com esse nome.', 'error');
+                return;
+            }
+
+            if (newKey !== oldKey) {
+                saveState();
+                
+                // Renomear a chave preservando a ordem
+                const newObj = {};
+                for (const key in parentObject) {
+                    if (key === oldKey) {
+                        newObj[newKey] = parentObject[key];
+                    } else {
+                        newObj[key] = parentObject[key];
+                    }
+                }
+                
+                // Substituir o objeto na estrutura
+                if (path.length === 0) {
+                    jsonStructure = newObj;
+                } else {
+                    let grandParentObject = jsonStructure;
+                    for (let i = 0; i < path.length - 1; i++) {
+                        grandParentObject = grandParentObject[path[i]];
+                    }
+                    const parentKey = path[path.length - 1];
+                    grandParentObject[parentKey] = newObj;
+                }
+            }
+
+            updateBuilder();
+            updatePreview();
+            showToast('Nome alterado com sucesso!', 'success');
+        }
+
+        // Altera dinamicamente o campo de input do valor quando o tipo é trocado na edição.
+        function updateEditInputType() {
+            const typeSelect = document.getElementById('edit-type-select');
+            const valueType = typeSelect.value;
+            const container = document.getElementById('edit-value-container');
+            if (!container) return;
+
+            let newFieldHtml = '';
+            if (valueType === 'null') {
+                newFieldHtml = 'null';
+                container.style.color = '#666';
+            } else {
+                container.style.color = 'inherit';
+                if (valueType === 'boolean') {
+                    newFieldHtml = `
+                        <select class="edit-input" id="edit-value-input">
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>`;
+                } else {
+                    newFieldHtml = `
+                        <input type="${valueType === 'number' ? 'number' : 'text'}" 
+                               class="edit-input" 
+                               id="edit-value-input" 
+                               placeholder="Valor"
+                               ${valueType === 'number' ? 'step="any"' : ''}
+                               style="flex: 1;">`;
+                }
+            }
+            container.innerHTML = newFieldHtml;
+        }
+
+        // Salva as alterações feitas na interface de edição para a estrutura principal `jsonStructure`.
+        function saveChanges(button, path, oldKeyOrIndex) {
+            const elementHeader = button.closest('.element-header');
+            if (!elementHeader) return;
+
+            let parentObject = jsonStructure;
+            for (const p of path) {
+                parentObject = parentObject[p];
+            }
+            const isArrayItem = Array.isArray(parentObject);
+
+            // Obtém a nova chave do campo de input (se existir).
+            let newKey = oldKeyOrIndex;
+            const keyInput = document.getElementById('edit-key-input');
+            if (keyInput) {
+                newKey = keyInput.value.trim();
+                if (!newKey) {
+                    showToast('A chave não pode estar vazia.', 'error');
+                    return;
+                }
+                if (newKey !== oldKeyOrIndex && parentObject.hasOwnProperty(newKey)) {
+                    showToast('Já existe uma propriedade com esse nome.', 'error');
+                    return;
+                }
+            }
+
+            // Obtém o novo valor do seu campo de input.
+            const valueType = document.getElementById('edit-type-select').value;
+            let newValue;
+
+            if (valueType === 'null') {
+                newValue = null;
+            } else {
+                const valueInput = document.getElementById('edit-value-input');
+                if (valueType === 'boolean') {
+                    newValue = valueInput.value === 'true';
+                } else if (valueType === 'number') {
+                    const num = parseFloat(valueInput.value);
+                    newValue = isNaN(num) ? 0 : num;
+                } else {
+                    newValue = valueInput.value;
+                }
+            }
+
+            saveState(); // Salva o estado atual para o histórico de "desfazer".
+
+            if (isArrayItem) {
+                // Se for um array, apenas atualiza o valor no índice.
+                parentObject[oldKeyOrIndex] = newValue;
+            } else {
+                // Se for um objeto, lida com a possível renomeação da chave.
+                if (newKey !== oldKeyOrIndex) {
+                    // Para preservar a ordem das propriedades, um novo objeto é criado.
+                    const newObj = {};
+                    for (const key in parentObject) {
+                        if (key === oldKeyOrIndex) {
+                            newObj[newKey] = newValue;
+                        } else {
+                            newObj[key] = parentObject[key];
+                        }
+                    }
+                    
+                    // Substitui o objeto antigo pelo novo na estrutura principal.
+                    if (path.length === 0) {
+                        jsonStructure = newObj;
+                    } else {
+                        let grandParentObject = jsonStructure;
+                        for (let i = 0; i < path.length - 1; i++) {
+                            grandParentObject = grandParentObject[path[i]];
+                        }
+                        const parentKey = path[path.length - 1];
+                        grandParentObject[parentKey] = newObj;
+                    }
+                } else {
+                    // Se a chave não mudou, apenas atualiza o valor.
+                    parentObject[newKey] = newValue;
+                }
+            }
+
+            // Atualiza toda a interface para refletir as mudanças.
+            updateBuilder();
+            updatePreview();
+            showToast('Alterações salvas com sucesso!', 'success');
+        }
+
+        // Cancela a edição e restaura o conteúdo original.
+        function cancelChanges(button) {
+            const elementHeader = button.closest('.element-header');
+            if (elementHeader) {
+                const originalHtml = elementHeader.getAttribute('data-original-html');
+                if (originalHtml) {
+                    elementHeader.innerHTML = originalHtml;
+                    elementHeader.removeAttribute('data-original-html');
+                } else {
+                    // Fallback caso o HTML original não tenha sido salvo.
+                    updateBuilder();
+                }
+            }
+        }
+        
+        // --- FIM DA NOVA LÓGICA DE EDIÇÃO ---
+
+        // --- INÍCIO DA LÓGICA DE DRAG-AND-DROP ---
+
+        function replaceObjectAtPath(path, newObj) {
+            if (path.length === 0) {
+                jsonStructure = newObj;
+            } else {
+                let parent = jsonStructure;
+                for (let i = 0; i < path.length - 1; i++) {
+                    parent = parent[path[i]];
+                }
+                parent[path[path.length - 1]] = newObj;
+            }
+        }
+
+        function handleDragStart(e, path, key) {
+            dragSourcePath = path;
+            dragSourceKey = key;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', '');
+            const el = e.target.closest('.json-element');
+            if (el) el.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            document.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+            document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+            dragSourcePath = null;
+            dragSourceKey = null;
+        }
+
+        function handleDragOver(e) {
+            if (dragSourcePath === null) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.target.closest('.json-element');
+            if (target) {
+                document.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+                target.classList.add('drop-target');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const target = e.target.closest('.json-element');
+            if (target && !target.contains(e.relatedTarget)) {
+                target.classList.remove('drop-target');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+            document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+
+            if (dragSourcePath === null || dragSourceKey === null) return;
+
+            const targetEl = e.target.closest('.json-element');
+            if (!targetEl) return;
+
+            const targetPath = JSON.parse(targetEl.getAttribute('data-element-path'));
+            const targetKey = targetEl.getAttribute('data-element-key');
+
+            // Não permitir soltar em si mesmo
+            if (JSON.stringify(dragSourcePath) === JSON.stringify(targetPath) && String(dragSourceKey) === String(targetKey)) {
+                dragSourcePath = null;
+                dragSourceKey = null;
+                return;
+            }
+
+            // Não permitir soltar dentro de si mesmo (descendente)
+            const sourceFull = [...dragSourcePath, dragSourceKey];
+            const targetFull = [...targetPath, targetKey];
+            if (targetFull.length >= sourceFull.length) {
+                const isDescendant = sourceFull.every((part, i) => String(part) === String(targetFull[i]));
+                if (isDescendant) {
+                    dragSourcePath = null;
+                    dragSourceKey = null;
+                    return;
+                }
+            }
+
+            try {
+                // Verificar se o alvo é um container (objeto ou array)
+                const targetParent = getParentObject(targetPath);
+                const targetValue = targetParent[targetKey];
+                const targetIsContainer = (typeof targetValue === 'object' && targetValue !== null);
+
+                // Se o alvo é um container, mover para dentro dele
+                if (targetIsContainer) {
+                    saveState();
+                    const elementToMove = JSON.parse(JSON.stringify(getElementByPath(dragSourcePath, dragSourceKey)));
+                    const originalKey = dragSourceKey;
+
+                    removeElementFromStructure(dragSourcePath, dragSourceKey);
+
+                    if (Array.isArray(targetValue)) {
+                        addElementToDestination({ path: [...targetPath, targetKey], type: 'array' }, originalKey, elementToMove);
+                    } else {
+                        addElementToDestination({ path: [...targetPath, targetKey], type: 'object' }, originalKey, elementToMove);
+                    }
+
+                    updateBuilder();
+                    updatePreview();
+                    showToast('Elemento movido com sucesso!', 'success');
+                } else if (JSON.stringify(dragSourcePath) === JSON.stringify(targetPath)) {
+                    // Mesmo pai e alvo não é container - reordenar
+                    const parent = getParentObject(dragSourcePath);
+                    saveState();
+
+                    if (Array.isArray(parent)) {
+                        const fromIndex = parseInt(dragSourceKey);
+                        const toIndex = parseInt(targetKey);
+                        const item = parent.splice(fromIndex, 1)[0];
+                        parent.splice(toIndex, 0, item);
+                    } else {
+                        const keys = Object.keys(parent);
+                        const fromIdx = keys.indexOf(String(dragSourceKey));
+                        const toIdx = keys.indexOf(String(targetKey));
+                        if (fromIdx > -1 && toIdx > -1) {
+                            keys.splice(fromIdx, 1);
+                            keys.splice(toIdx, 0, String(dragSourceKey));
+                            const newObj = {};
+                            keys.forEach(k => { newObj[k] = parent[k]; });
+                            replaceObjectAtPath(dragSourcePath, newObj);
+                        }
+                    }
+
+                    updateBuilder();
+                    updatePreview();
+                    showToast('Elemento reordenado com sucesso!', 'success');
+                } else {
+                    // Pais diferentes e alvo não é container - mover para o pai do alvo
+                    saveState();
+                    const elementToMove = JSON.parse(JSON.stringify(getElementByPath(dragSourcePath, dragSourceKey)));
+                    const originalKey = dragSourceKey;
+
+                    removeElementFromStructure(dragSourcePath, dragSourceKey);
+
+                    addElementToDestination({ path: targetPath, type: Array.isArray(targetParent) ? 'array' : 'object' }, originalKey, elementToMove);
+
+                    updateBuilder();
+                    updatePreview();
+                    showToast('Elemento movido com sucesso!', 'success');
+                }
+            } catch (error) {
+                console.error('Erro no drag-and-drop:', error);
+                showToast('Erro ao mover elemento: ' + error.message, 'error');
+            }
+
+            dragSourcePath = null;
+            dragSourceKey = null;
+        }
+
+        // --- FIM DA LÓGICA DE DRAG-AND-DROP ---
+
+        // Função para recolher/expandir conteúdo aninhado
+        function toggleCollapse(btn) {
+            btn.classList.toggle('collapsed');
+            const parentElement = btn.closest('.json-element');
+            if (parentElement) {
+                const nestedContent = parentElement.querySelector(':scope > .nested-content');
+                if (nestedContent) {
+                    nestedContent.classList.toggle('collapsed');
+                }
+            }
+        }
+
+        // Renderizar objeto recursivamente
+        function renderObject(obj, container, path) {
+            Object.keys(obj).forEach(key => {
+                const value = obj[key];
+                const elementId = `element-${elementIdCounter++}`;
+                const element = document.createElement('div');
+                element.className = 'json-element';
+                element.id = elementId;
+                
+                element.setAttribute('data-element-path', JSON.stringify(path));
+                element.setAttribute('data-element-key', key);
+                element.setAttribute('data-element-id', elementId);
+                
+                // Adicionar event listener para seleção
+                element.addEventListener('click', function(e) {
+                    if (selectionMode && !e.target.closest('button')) {
+                        e.stopPropagation();
+                        selectElement(elementId, path, key);
+                    }
+                });
+                
+                if (Array.isArray(value)) {
+                    element.classList.add('array');
+                    element.innerHTML = `
+                        <div class="element-header">
+                            <div class="element-type">
+                                <button class="collapse-btn" onclick="toggleCollapse(this)" title="Recolher/Expandir">▼</button>
+                                <span class="drag-handle" title="Arraste para mover">⋮⋮</span>
+                                Array: "${escapeHtml(key)}" [${value.length} items]
+                            </div>
+                            <div class="element-controls">
+                                <button class="mini-btn btn-primary" onclick="startEditing(this)">
+                                    Editar Nome
+                                </button>
+                                <button class="mini-btn btn-success" onclick='showAddValueToArrayModal(${JSON.stringify([...path, key])})'>
+                                    Adicionar Valor
+                                </button>
+                                <button class="mini-btn btn-primary" onclick='addObjectToArray(${JSON.stringify([...path, key])})'>
+                                    Adicionar Objeto
+                                </button>
+                                <button class="mini-btn btn-info" onclick='addNestedArray(${JSON.stringify([...path, key])})'>
+                                    Adicionar Array
+                                </button>
+                                <button class="mini-btn btn-warning" onclick='startMove(${JSON.stringify(path)}, "${escapeHtml(key)}", "array")'>
+                                    Mover
+                                </button>
+                                <button class="mini-btn btn-danger" onclick='removeElement(${JSON.stringify(path)}, "${escapeHtml(key)}")'>
+                                    Remover
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const nestedContainer = document.createElement('div');
+                    nestedContainer.className = 'nested nested-content';
+                    value.forEach((item, index) => {
+                        const itemKey = index.toString();
+                        const itemPath = [...path, key];
+
+                        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+                            const objElement = document.createElement('div');
+                            const objElementId = `element-${elementIdCounter++}`;
+                            objElement.className = 'json-element nested';
+                            objElement.id = objElementId;
+                            objElement.setAttribute('data-element-path', JSON.stringify(itemPath));
+                            objElement.setAttribute('data-element-key', index.toString());
+                            objElement.setAttribute('data-element-id', objElementId);
+                            
+                            // Adicionar event listener para seleção
+                            objElement.addEventListener('click', function(e) {
+                                if (selectionMode && !e.target.closest('button')) {
+                                    e.stopPropagation();
+                                    selectElement(objElementId, itemPath, index.toString());
+                                }
+                            });
+                            
+                            objElement.innerHTML = `
+                                <div class="element-header">
+                                    <div class="element-type">
+                                        <button class="collapse-btn" onclick="toggleCollapse(this)" title="Recolher/Expandir">▼</button>
+                                        <span class="drag-handle" title="Arraste para mover">⋮⋮</span>
+                                        [${index}] (Objeto)
+                                    </div>
+                                    <div class="element-controls">
+                                        <button class="mini-btn btn-success" onclick='addToArray(${JSON.stringify([...itemPath, index])})'>
+                                            Adicionar Propriedade
+                                        </button>
+                                        <button class="mini-btn btn-primary" onclick='addObjectToArray(${JSON.stringify([...itemPath, index])})'>
+                                            Adicionar Objeto
+                                        </button>
+                                        <button class="mini-btn btn-info" onclick='addNestedArray(${JSON.stringify([...itemPath, index])})'>
+                                            Adicionar Array
+                                        </button>
+                                        <button class="mini-btn btn-warning" onclick='startMove(${JSON.stringify(itemPath)}, "${index}", "object")'>
+                                            Mover
+                                        </button>
+                                        <button class="mini-btn btn-danger" onclick='removeElement(${JSON.stringify(itemPath)}, "${index}")'>
+                                            Remover
+                                        </button>
+                                    </div>
+                                </div>`;
+                            
+                            const objNestedContainer = document.createElement('div');
+                            objNestedContainer.className = 'nested nested-content';
+                            renderObject(item, objNestedContainer, [...itemPath, index]);
+                            objElement.appendChild(objNestedContainer);
+                            nestedContainer.appendChild(objElement);
+                        } else if (Array.isArray(item)) {
+                            const arrayElement = document.createElement('div');
+                            const arrayElementId = `element-${elementIdCounter++}`;
+                            arrayElement.className = 'json-element nested array';
+                            arrayElement.id = arrayElementId;
+                            arrayElement.setAttribute('data-element-path', JSON.stringify(itemPath));
+                            arrayElement.setAttribute('data-element-key', itemKey);
+                            arrayElement.setAttribute('data-element-id', arrayElementId);
+                            
+                            // Adicionar event listener para seleção
+                            arrayElement.addEventListener('click', function(e) {
+                                if (selectionMode && !e.target.closest('button')) {
+                                    e.stopPropagation();
+                                    selectElement(arrayElementId, itemPath, index.toString());
+                                }
+                            });
+                            
+                            arrayElement.innerHTML = `
+                                <div class="element-header">
+                                    <div class="element-type">
+                                        <button class="collapse-btn" onclick="toggleCollapse(this)" title="Recolher/Expandir">▼</button>
+                                        <span class="drag-handle" title="Arraste para mover">⋮⋮</span>
+                                        [${index}] Array [${item.length} items]
+                                    </div>
+                                    <div class="element-controls">
+                                        <button class="mini-btn btn-success" onclick='showAddValueToArrayModal(${JSON.stringify([...itemPath, index])})'>
+                                            Adicionar Valor
+                                        </button>
+                                        <button class="mini-btn btn-primary" onclick='addObjectToArray(${JSON.stringify([...itemPath, index])})'>
+                                            Adicionar Objeto
+                                        </button>
+                                        <button class="mini-btn btn-info" onclick='addNestedArray(${JSON.stringify([...itemPath, index])})'>
+                                            Adicionar Array
+                                        </button>
+                                        <button class="mini-btn btn-warning" onclick='startMove(${JSON.stringify(itemPath)}, "${index}", "array")'>
+                                            Mover
+                                        </button>
+                                        <button class="mini-btn btn-danger" onclick='removeElement(${JSON.stringify(itemPath)}, "${index}")'>
+                                            Remover
+                                        </button>
+                                    </div>
+                                </div>`;
+                            
+                            const arrayNestedContainer = document.createElement('div');
+                            arrayNestedContainer.className = 'nested nested-content';
+                            renderObject(item, arrayNestedContainer, [...itemPath, index]);
+                            arrayElement.appendChild(arrayNestedContainer);
+                            nestedContainer.appendChild(arrayElement);
+                        } else {
+                            const itemElement = document.createElement('div');
+                            const itemElementId = `element-${elementIdCounter++}`;
+                            itemElement.className = 'json-element nested';
+                            itemElement.id = itemElementId;
+                            itemElement.setAttribute('data-element-path', JSON.stringify(itemPath));
+                            itemElement.setAttribute('data-element-key', itemKey);
+                            itemElement.setAttribute('data-element-id', itemElementId);
+                            
+                            // Adicionar event listener para seleção
+                            itemElement.addEventListener('click', function(e) {
+                                if (selectionMode && !e.target.closest('button')) {
+                                    e.stopPropagation();
+                                    selectElement(itemElementId, itemPath, itemKey);
+                                }
+                            });
+                            
+                            let itemDisplay = JSON.stringify(item);
+                            if (typeof item === 'string') {
+                                itemDisplay = `"${item.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"`;
+                            }
+                            
+                            itemElement.innerHTML = `
+                                <div class="element-header">
+                                    <div class="element-type">
+                                        <span class="drag-handle" title="Arraste para mover">⋮⋮</span>
+                                        [${index}]: ${itemDisplay}
+                                    </div>
+                                    <div class="element-controls">
+                                        <button class="mini-btn btn-primary" onclick="startEditing(this)">
+                                            Editar
+                                        </button>
+                                        <button class="mini-btn btn-warning" onclick='startMove(${JSON.stringify(itemPath)}, "${index}", "primitive")'>
+                                            Mover
+                                        </button>
+                                        <button class="mini-btn btn-danger" onclick='removeElement(${JSON.stringify(itemPath)}, "${index}")'>
+                                            Remover
+                                        </button>
+                                    </div>
+                                </div>`;
+                            nestedContainer.appendChild(itemElement);
+                        }
+                    });
+                    element.appendChild(nestedContainer);
+                    
+                } else if (typeof value === 'object' && value !== null) {
+                    element.innerHTML = `
+                        <div class="element-header">
+                            <div class="element-type">
+                                <button class="collapse-btn" onclick="toggleCollapse(this)" title="Recolher/Expandir">▼</button>
+                                <span class="drag-handle" title="Arraste para mover">⋮⋮</span>
+                                Objeto: "${escapeHtml(key)}"
+                            </div>
+                            <div class="element-controls">
+                                <button class="mini-btn btn-primary" onclick="startEditing(this)">
+                                    Editar Nome
+                                </button>
+                                <button class="mini-btn btn-success" onclick='addToArray(${JSON.stringify([...path, key])})'>
+                                    Adicionar Propriedade
+                                </button>
+                                <button class="mini-btn btn-primary" onclick='addObjectToArray(${JSON.stringify([...path, key])})'>
+                                    Adicionar Objeto
+                                </button>
+                                <button class="mini-btn btn-info" onclick='addNestedArray(${JSON.stringify([...path, key])})'>
+                                    Adicionar Array
+                                </button>
+                                <button class="mini-btn btn-warning" onclick='startMove(${JSON.stringify(path)}, "${escapeHtml(key)}", "object")'>
+                                    Mover
+                                </button>
+                                <button class="mini-btn btn-danger" onclick='removeElement(${JSON.stringify(path)}, "${escapeHtml(key)}")'>
+                                    Remover
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const nestedContainer = document.createElement('div');
+                    nestedContainer.className = 'nested nested-content';
+                    renderObject(value, nestedContainer, [...path, key]);
+                    element.appendChild(nestedContainer);
+                    
+                } else {
+                    let displayValue = JSON.stringify(value);
+                     if (typeof value === 'string') {
+                        displayValue = `"${value.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"`;
+                    }
+                    
+                    element.innerHTML = `
+                        <div class="element-header">
+                            <div class="element-type">
+                                <span class="drag-handle" title="Arraste para mover">⋮⋮</span>
+                                "${escapeHtml(key)}": ${displayValue}
+                            </div>
+                            <div class="element-controls">
+                                <button class="mini-btn btn-primary" onclick="startEditing(this)">
+                                    Editar
+                                </button>
+                                <button class="mini-btn btn-warning" onclick='startMove(${JSON.stringify(path)}, "${escapeHtml(key)}", "primitive")'>
+                                    Mover
+                                </button>
+                                <button class="mini-btn btn-danger" onclick='removeElement(${JSON.stringify(path)}, "${escapeHtml(key)}")'>
+                                    Remover
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.appendChild(element);
+            });
+        }
+
+        // Atualizar preview do JSON
+        function updatePreview() {
+            const preview = document.getElementById('jsonPreview');
+            try {
+                const jsonString = JSON.stringify(jsonStructure, null, 2);
+                preview.innerHTML = syntaxHighlight(jsonString);
+                updateStatus(true);
+            } catch (e) {
+                preview.textContent = 'Erro ao gerar JSON: ' + e.message;
+                updateStatus(false);
+            }
+        }
+
+        // Syntax highlighting
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    cls = /:$/.test(match) ? 'json-key' : 'json-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        // Atualizar status
+        function updateStatus(isValid) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusDot.className = isValid ? 'status-dot' : 'status-dot error';
+            statusText.textContent = isValid ? 'JSON válido' : 'JSON inválido';
+        }
+
+        // Atualizar contagem de elementos
+        function updateElementCount() {
+            const count = countElements(jsonStructure);
+            document.getElementById('elementCount').textContent = `${count} elemento${count !== 1 ? 's' : ''}`;
+        }
+
+        // Contar elementos recursivamente
+        function countElements(obj) {
+            let count = 0;
+            if (typeof obj !== 'object' || obj === null) return 0;
+
+            if (Array.isArray(obj)) {
+                count += obj.length;
+                obj.forEach(item => {
+                    count += countElements(item);
+                });
+            } else {
+                const keys = Object.keys(obj);
+                count += keys.length;
+                keys.forEach(key => {
+                    count += countElements(obj[key]);
+                });
+            }
+            return count;
+        }
+
+        // Limpar tudo
+        function clearAll() {
+            if (confirm('Tem certeza que deseja limpar toda a estrutura JSON?')) {
+                saveState();
+                jsonStructure = {};
+                currentPath = [];
+                updateBuilder();
+                updatePreview();
+                showToast('JSON limpo', 'success');
+            }
+        }
+
+        // Copiar para clipboard
+        function copyToClipboard() {
+            const jsonString = JSON.stringify(jsonStructure, null, 2);
+            navigator.clipboard.writeText(jsonString).then(() => {
+                showToast('JSON copiado para a área de transferência', 'success');
+            }, () => {
+                showToast('Erro ao copiar JSON', 'error');
+            });
+        }
+
+        // Download JSON
+        function downloadJSON() {
+            try {
+                const jsonString = JSON.stringify(jsonStructure, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `json-export-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('JSON baixado com sucesso', 'success');
+            } catch(e) {
+                showToast('Erro ao criar arquivo JSON.', 'error');
+            }
+        }
+
+        // Formatar JSON
+        function formatJSON() {
+            updatePreview();
+            showToast('JSON formatado', 'success');
+        }
+
+        // Mostrar toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            saveState();
+            updateBuilder();
+            updatePreview();
+            
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal(modal.id);
+                });
+            });
+            
+            document.getElementById('arrayName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addArray();
+            });
+            
+            document.getElementById('objectModal').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addObject();
+            });
+            
+            document.getElementById('keyValueModal').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addKeyValue();
+            });
+            
+            document.getElementById('addValueModal').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addValueToArray();
+            });
+
+            // Drag-and-drop via delegação de eventos
+            const builderEl = document.getElementById('jsonBuilder');
+
+            builderEl.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('drag-handle')) {
+                    const jsonElement = e.target.closest('.json-element');
+                    if (jsonElement) jsonElement.setAttribute('draggable', 'true');
+                }
+            });
+
+            builderEl.addEventListener('dragstart', function(e) {
+                const jsonElement = e.target.closest('.json-element');
+                if (jsonElement && jsonElement.getAttribute('draggable') === 'true') {
+                    const path = JSON.parse(jsonElement.getAttribute('data-element-path'));
+                    const key = jsonElement.getAttribute('data-element-key');
+                    handleDragStart(e, path, key);
+                }
+            });
+
+            builderEl.addEventListener('dragend', function(e) {
+                const jsonElement = e.target.closest('.json-element');
+                if (jsonElement) jsonElement.removeAttribute('draggable');
+                handleDragEnd(e);
+            });
+
+            builderEl.addEventListener('dragover', function(e) {
+                handleDragOver(e);
+            });
+
+            builderEl.addEventListener('dragleave', function(e) {
+                handleDragLeave(e);
+            });
+
+            builderEl.addEventListener('drop', function(e) {
+                handleDrop(e);
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal').forEach(modal => closeModal(modal.id));
+                }
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); } 
+                    else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); redo(); } 
+                    else if (e.key === 's') { e.preventDefault(); downloadJSON(); } 
+                    else if (e.key === 'c' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); copyToClipboard(); }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
