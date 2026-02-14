@@ -16,21 +16,21 @@ function toggleTheme() {
 }
 
 // Tab switching
-function switchTab(tabName) {
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+function switchTab(tabName, el) {
+    document.querySelectorAll('.request-panel > .tabs .tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.request-panel > .tab-content').forEach(content => content.classList.remove('active'));
     
-    event.target.classList.add('active');
+    el.classList.add('active');
     document.getElementById(tabName + '-content').classList.add('active');
     
     updateUrlPreview();
 }
 
-function switchResponseTab(tabName) {
+function switchResponseTab(tabName, el) {
     document.querySelectorAll('#responseTabs .tab').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('[id^="response-"][id$="-content"]').forEach(content => content.classList.remove('active'));
     
-    event.target.classList.add('active');
+    el.classList.add('active');
     document.getElementById('response-' + tabName + '-content').classList.add('active');
 }
 
@@ -259,6 +259,42 @@ function removeItem(button) {
     updateUrlPreview();
 }
 
+// CORS proxy list (fallbacks)
+const CORS_PROXIES = [
+    (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
+
+async function fetchWithProxy(url, options) {
+    const useCorsProxy = document.getElementById('corsProxy').checked;
+
+    // Se proxy CORS desativado, tenta direto
+    if (!useCorsProxy) {
+        return await fetch(url, options);
+    }
+
+    // Tenta direto primeiro
+    try {
+        const response = await fetch(url, options);
+        return response;
+    } catch (directError) {
+        // Falhou (provavelmente CORS), tenta proxies
+        let lastError = directError;
+
+        for (const proxyFn of CORS_PROXIES) {
+            try {
+                const proxiedUrl = proxyFn(url);
+                const response = await fetch(proxiedUrl, options);
+                return response;
+            } catch (proxyError) {
+                lastError = proxyError;
+            }
+        }
+
+        throw lastError;
+    }
+}
+
 // Send request
 async function sendRequest() {
     if (!validateUrl()) {
@@ -276,7 +312,7 @@ async function sendRequest() {
     
     try {
         const requestData = buildRequestData();
-        const response = await fetch(requestData.url, requestData.options);
+        const response = await fetchWithProxy(requestData.url, requestData.options);
         const endTime = Date.now();
         
         await handleResponse(response, endTime - startTime, requestData);
@@ -576,14 +612,14 @@ function exportToCurl() {
     let curl = `curl -X ${requestData.options.method}`;
     
     Object.entries(requestData.options.headers).forEach(([key, value]) => {
-        curl += ` \\\n  -H "${key}: ${value}"`;
+        curl += ` \\\n  -H '${key}: ${value}'`;
     });
     
     if (requestData.options.body && typeof requestData.options.body === 'string') {
         curl += ` \\\n  -d '${requestData.options.body}'`;
     }
     
-    curl += ` \\\n  "${requestData.url}"`;
+    curl += ` \\\n  '${requestData.url}'`;
     
     document.getElementById('curlOutput').textContent = curl;
     document.getElementById('curlModal').style.display = 'block';
@@ -591,24 +627,128 @@ function exportToCurl() {
 
 function importFromCurl() {
     const curlCommand = prompt('Cole o comando cURL aqui:');
-    if (curlCommand) {
-        try {
-            const urlMatch = curlCommand.match(/"([^"]+)"$/);
-            if (urlMatch) {
-                document.getElementById('apiUrl').value = urlMatch[1];
-                validateUrl();
+    if (!curlCommand) return;
+
+    try {
+        // Normalizar: remover quebras de linha com \
+        const normalized = curlCommand.replace(/\\\s*\n\s*/g, ' ').trim();
+
+        // Extrair método
+        const methodMatch = normalized.match(/-X\s+(\w+)/i);
+        if (methodMatch) {
+            document.getElementById('httpMethod').value = methodMatch[1].toUpperCase();
+            updateMethodIndicator();
+        } else {
+            // Se não tem -X, inferir pelo -d (POST) ou padrão (GET)
+            if (/-d\s+/.test(normalized)) {
+                document.getElementById('httpMethod').value = 'POST';
+            } else {
+                document.getElementById('httpMethod').value = 'GET';
             }
-            
-            const methodMatch = curlCommand.match(/-X\s+(\w+)/);
-            if (methodMatch) {
-                document.getElementById('httpMethod').value = methodMatch[1];
-                updateMethodIndicator();
-            }
-            
-            alert('cURL importado com sucesso! (importação básica)');
-        } catch (error) {
-            alert('Erro ao importar cURL: ' + error.message);
+            updateMethodIndicator();
         }
+
+        // Extrair URL — suporta aspas simples, duplas ou sem aspas
+        let rawUrl = null;
+        const urlMatchSingle = normalized.match(/'(https?:\/\/[^']+)'/);
+        const urlMatchDouble = normalized.match(/"(https?:\/\/[^"]+)"/);
+        const urlMatchBare = normalized.match(/(?:^|\s)(https?:\/\/\S+)/);
+
+        if (urlMatchSingle) {
+            rawUrl = urlMatchSingle[1];
+        } else if (urlMatchDouble) {
+            rawUrl = urlMatchDouble[1];
+        } else if (urlMatchBare) {
+            rawUrl = urlMatchBare[1];
+        }
+
+        if (rawUrl) {
+            // Separar base URL e query params
+            try {
+                const urlObj = new URL(rawUrl);
+                const baseUrl = urlObj.origin + urlObj.pathname;
+                document.getElementById('apiUrl').value = baseUrl;
+
+                // Limpar query params existentes e adicionar os da URL
+                const queryParamsContainer = document.getElementById('queryParams');
+                queryParamsContainer.innerHTML = '';
+
+                if (urlObj.searchParams && [...urlObj.searchParams].length > 0) {
+                    urlObj.searchParams.forEach((value, key) => {
+                        const item = document.createElement('div');
+                        item.className = 'list-item';
+                        item.innerHTML = `
+                            <input type="text" placeholder="Chave" class="param-key" oninput="updateUrlPreview()" value="${key}">
+                            <input type="text" placeholder="Valor" class="param-value" oninput="updateUrlPreview()" value="${value}">
+                            <label class="checkbox-group">
+                                <input type="checkbox" checked onchange="updateUrlPreview()"> Ativo
+                            </label>
+                            <button class="remove-btn" onclick="removeItem(this)">X</button>
+                        `;
+                        queryParamsContainer.appendChild(item);
+                    });
+                } else {
+                    addQueryParam();
+                }
+            } catch {
+                document.getElementById('apiUrl').value = rawUrl;
+            }
+
+            validateUrl();
+        }
+
+        // Extrair headers (-H 'Key: Value' ou -H "Key: Value")
+        const headerRegex = /-H\s+['"]([^'"]+)['"]/g;
+        let headerMatch;
+        const headersContainer = document.getElementById('requestHeaders');
+        headersContainer.innerHTML = '';
+        let foundHeaders = false;
+
+        while ((headerMatch = headerRegex.exec(normalized)) !== null) {
+            foundHeaders = true;
+            const colonIdx = headerMatch[1].indexOf(':');
+            if (colonIdx > -1) {
+                const hKey = headerMatch[1].substring(0, colonIdx).trim();
+                const hValue = headerMatch[1].substring(colonIdx + 1).trim();
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <input type="text" placeholder="Header" class="header-key" value="${hKey}">
+                    <input type="text" placeholder="Valor" class="header-value" value="${hValue}">
+                    <button class="remove-btn" onclick="removeItem(this)">X</button>
+                `;
+                headersContainer.appendChild(item);
+            }
+        }
+
+        if (!foundHeaders) {
+            addHeader();
+        }
+
+        // Extrair body (-d 'data' ou -d "data" ou --data 'data')
+        const bodyMatch = normalized.match(/(?:-d|--data)\s+['"]([\s\S]*?)['"]/);
+        if (bodyMatch) {
+            const bodyContent = bodyMatch[1];
+            try {
+                JSON.parse(bodyContent);
+                document.getElementById('contentType').value = 'application/json';
+                document.getElementById('jsonBody').value = bodyContent;
+            } catch {
+                document.getElementById('contentType').value = 'text/plain';
+                document.getElementById('rawBody').value = bodyContent;
+            }
+            updateBodyEditor();
+        }
+
+        updateUrlPreview();
+        
+        // Mudar para a aba de Query Params para mostrar os parâmetros importados
+        const paramsTab = document.querySelector('.request-panel > .tabs .tab');
+        if (paramsTab) switchTab('params', paramsTab);
+
+        alert('cURL importado com sucesso!');
+    } catch (error) {
+        alert('Erro ao importar cURL: ' + error.message);
     }
 }
 

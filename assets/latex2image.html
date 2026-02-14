@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX para Imagem</title>
+    <link rel="stylesheet" href="css/latex2image.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                packages: { '[+]': ['ams', 'color', 'boldsymbol'] }
+            },
+            svg: {
+                fontCache: 'none',
+                scale: 1
+            },
+            startup: {
+                ready: function () {
+                    MathJax.startup.defaultReady();
+                    MathJax.startup.promise.then(function () {
+                        window.mathjaxReady = true;
+                    });
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@13.2.0/lib/browser/math.js"></script>
+</head>
+<body>
+    <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+
+    <div class="container">
+        <header class="header">
+            <h1>LaTeX para Imagem</h1>
+            <p class="header-desc">Converta equações LaTeX em imagens PNG, JPG ou SVG</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Input Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Entrada</h2>
+                </div>
+
+                <div class="input-area">
+                    <textarea id="latexInput" placeholder="LaTeX ou expressão matemática...&#10;&#10;LaTeX: \frac{\pi}{2} = \int_{-1}^{1} \sqrt{1-x^2}\ dx&#10;Expressão: (1/2)^2 • sqrt(x^2+1) • ((x+1)/(x-1))^2" spellcheck="false"></textarea>
+                    <div class="input-hint">Aceita LaTeX (<code>\frac{}{}</code>, <code>\sum</code>…) e expressões (<code>1/2</code>, <code>sqrt()</code>, <code>^</code>). Detecção automática.</div>
+                </div>
+
+                <div class="options-row">
+                    <div class="option-group">
+                        <label for="outputFormat">Formato</label>
+                        <select id="outputFormat">
+                            <option value="PNG" selected>PNG</option>
+                            <option value="JPG">JPG</option>
+                            <option value="SVG">SVG</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="outputScale">Escala</label>
+                        <select id="outputScale">
+                            <option value="1">100%</option>
+                            <option value="1.5">150%</option>
+                            <option value="2" selected>200%</option>
+                            <option value="3">300%</option>
+                            <option value="4">400%</option>
+                            <option value="5">500%</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="textColor">Cor do texto</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="textColor" value="#000000">
+                            <span id="textColorLabel">#000000</span>
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="bgColor">Fundo</label>
+                        <div class="bg-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="transparentBg" checked>
+                                <span>Transparente</span>
+                            </label>
+                            <div class="color-input-wrapper" id="bgColorWrapper" style="display:none;">
+                                <input type="color" id="bgColor" value="#ffffff">
+                                <span id="bgColorLabel">#ffffff</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkbox-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autoAlign" checked>
+                        <span>Envolver com <code>\begin{align*}</code> automaticamente</span>
+                    </label>
+                </div>
+
+                <div class="actions">
+                    <button class="btn-primary" id="convertBtn">
+                        <span id="convertSpinner" class="spinner" style="display:none;"></span>
+                        <span id="convertText">Converter</span>
+                    </button>
+                    <button class="btn-secondary" id="exampleBtn">Exemplo</button>
+                    <button class="btn-secondary" id="clearBtn">Limpar</button>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Resultado</h2>
+                </div>
+
+                <div class="preview-tabs">
+                    <button class="preview-tab active" id="tabImage" type="button">Imagem</button>
+                    <button class="preview-tab" id="tabCode" type="button">Código</button>
+                </div>
+
+                <div id="imageView">
+                <div class="preview-area" id="previewArea">
+                    <div class="preview-placeholder" id="previewPlaceholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span>A imagem aparecerá aqui</span>
+                    </div>
+                    <div id="previewContent" style="display:none;">
+                        <div id="renderedOutput"></div>
+                    </div>
+                </div>
+
+                <div class="result-actions" id="resultActions" style="display:none;">
+                    <button class="btn-success" id="downloadBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Baixar Imagem
+                    </button>
+                    <button class="btn-secondary" id="copyBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copiar
+                    </button>
+                </div>
+                </div>
+
+                <div id="codeView" style="display:none;">
+                    <div class="code-preview">
+                        <div class="code-header">
+                            <span>LaTeX</span>
+                            <button class="btn-copy-code" id="copyCodeBtn" type="button">Copiar</button>
+                        </div>
+                        <pre id="latexCodeOutput">—</pre>
+                    </div>
+                </div>
+
+                <div class="error-alert" id="errorAlert" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Hidden rendering area -->
+        <div id="hiddenRender" style="position:absolute;left:-9999px;top:-9999px;visibility:hidden;"></div>
+        <canvas id="exportCanvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/latex2image.js"></script>
+</body>
+</html>

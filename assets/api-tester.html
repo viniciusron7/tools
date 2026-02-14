@@ -43,6 +43,12 @@
                         Enviar
                     </button>
                 </div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div id="urlPreview" style="font-size: 12px; color: #64748b; word-break: break-all; font-family: Consolas, Monaco, 'Courier New', monospace; flex: 1;"></div>
+                    <label class="checkbox-group" style="white-space: nowrap;" title="Usa um proxy CORS para contornar bloqueios do navegador. Ative se a requisição falhar com erro de rede/CORS.">
+                        <input type="checkbox" id="corsProxy" checked> Proxy CORS
+                    </label>
+                </div>
 
                 <!-- Quick Actions -->
                 <div class="quick-actions">
@@ -54,9 +60,9 @@
 
                 <!-- Tabs -->
                 <div class="tabs">
-                    <div class="tab active" onclick="switchTab('params')">Query Params</div>
-                    <div class="tab" onclick="switchTab('headers')">Headers</div>
-                    <div class="tab" onclick="switchTab('body')">Body</div>
+                    <div class="tab active" onclick="switchTab('params', this)">Query Params</div>
+                    <div class="tab" onclick="switchTab('headers', this)">Headers</div>
+                    <div class="tab" onclick="switchTab('body', this)">Body</div>
                 </div>
 
                 <!-- Query Parameters Tab -->
@@ -144,8 +150,8 @@
                 </div>
 
                 <div class="tabs" id="responseTabs" style="display: none;">
-                    <div class="tab active" onclick="switchResponseTab('body')">Body</div>
-                    <div class="tab" onclick="switchResponseTab('headers')">Headers</div>
+                    <div class="tab active" onclick="switchResponseTab('body', this)">Body</div>
+                    <div class="tab" onclick="switchResponseTab('headers', this)">Headers</div>
                 </div>
 
                 <div class="tab-content active" id="response-body-content">
