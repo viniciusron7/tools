@@ -64,9 +64,10 @@ body {
 
 .main-content {
   display: grid;
-  grid-template-columns: 7fr 3fr;
-  gap: 30px;
-  padding: 30px;
+  grid-template-columns: 6fr 3fr; /* ← Ajuste da divisão: 8fr = Construtor, 2fr = Visualização */
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
 }
 
 .panel {
@@ -75,6 +76,7 @@ body {
   border-radius: 10px;
   padding: 20px;
   box-shadow: none;
+  min-width: 0; /* Impede que o painel expanda além da coluna do grid */
 }
 
 .panel-header {
@@ -156,8 +158,8 @@ body {
   background: #0b1220;
   border-radius: 10px;
   padding: 20px;
-  min-height: 600px;
-  max-height: 85vh;
+  min-height: 300px; /* ← Altura mínima do Construtor */
+  max-height: 60vh;  /* ← Altura máxima do Construtor */
   overflow-y: auto;
   border: 1px solid #334155;
 }
@@ -366,8 +368,8 @@ body {
   font-size: 14px;
   line-height: 1.5;
   overflow-x: auto;
-  min-height: 600px;
-  max-height: 85vh;
+  min-height: 300px; /* ← Altura mínima da Visualização */
+  max-height: 60vh;  /* ← Altura máxima da Visualização */
   overflow-y: auto;
   white-space: pre-wrap;
   word-wrap: break-word;

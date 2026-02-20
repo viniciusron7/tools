@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Escape / Unescape</title>
+    <link rel="stylesheet" href="css/json-escape-unescape.css">
+</head>
+<body>
+    <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+
+    <div class="container">
+        <header class="header">
+            <h1>JSON Escape / Unescape</h1>
+            <p>Converta strings para formato JSON válido e vice-versa</p>
+        </header>
+
+        <div class="text-areas">
+            <div class="text-area-wrapper">
+                <label for="input">Entrada</label>
+                <textarea id="input" placeholder="Cole aqui o texto que deseja converter..."></textarea>
+                <span class="char-count" id="inputCount">0 caracteres</span>
+            </div>
+
+            <div class="text-area-wrapper">
+                <label for="output">Saída</label>
+                <textarea id="output" placeholder="O resultado aparecerá aqui..." readonly></textarea>
+                <span class="char-count" id="outputCount">0 caracteres</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-escape" onclick="escapeJson()">Escape</button>
+            <button class="btn-unescape" onclick="unescapeJson()">Unescape</button>
+            <button class="btn-clear" onclick="clearAll()">Limpar</button>
+            <button class="btn-copy" onclick="copyOutput()">Copiar</button>
+        </div>
+
+        <button class="btn-ref-toggle" onclick="toggleRef()" id="refToggleBtn">Referência de caracteres especiais ▸</button>
+
+        <div class="info-section" id="infoSection" style="display:none">
+            <h3>Referência de caracteres especiais</h3>
+            <table class="char-table">
+                <thead>
+                    <tr>
+                        <th>Caractere</th>
+                        <th>Descrição</th>
+                        <th>Escape</th>
+                        <th>Unicode</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>"</td><td>Aspas duplas</td><td>\"</td><td>\u0022</td></tr>
+                    <tr><td>\</td><td>Barra invertida</td><td>\\</td><td>\u005C</td></tr>
+                    <tr><td>/</td><td>Barra</td><td>\/</td><td>\u002F</td></tr>
+                    <tr><td>LF</td><td>Nova linha</td><td>\n</td><td>\u000A</td></tr>
+                    <tr><td>TAB</td><td>Tabulação</td><td>\t</td><td>\u0009</td></tr>
+                    <tr><td>CR</td><td>Retorno de carro</td><td>\r</td><td>\u000D</td></tr>
+                    <tr><td>FF</td><td>Form feed</td><td>\f</td><td>\u000C</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      function toggleRef() {
+        const sec = document.getElementById('infoSection');
+        const btn = document.getElementById('refToggleBtn');
+        const open = sec.style.display === 'block';
+        sec.style.display = open ? 'none' : 'block';
+        btn.textContent = open ? 'Referência de caracteres especiais ▸' : 'Referência de caracteres especiais ▾';
+      }
+    </script>
+    <script src="js/json-escape-unescape.js"></script>
+</body>
+</html>
