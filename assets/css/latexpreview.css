@@ -275,7 +275,7 @@ math-field {
   --caret-color: var(--accent);
   --selection-background-color: var(--accent-dim);
   --smart-fence-color: var(--accent);
-  --contains-highlight-background-color: var(--accent-dim);
+  --contains-highlight-background-color: transparent;
 }
 
 math-field:focus-within {
@@ -478,23 +478,71 @@ math-field:focus-within {
   cursor: pointer;
 }
 
-.size-select {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  border: 1.5px solid var(--border-dim);
-  border-radius: var(--radius-s);
-  padding: 5px 10px;
-  font-size: .78rem;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  transition: border-color var(--transition);
-  appearance: auto;
+/* Size slider group */
+.size-slider-group {
+  min-width: 140px;
 }
 
-.size-select:hover,
-.size-select:focus {
-  border-color: var(--accent);
+.size-value {
+  display: inline-block;
+  min-width: 1.4em;
+  text-align: center;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.size-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 3px;
   outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.size-slider:hover,
+.size-slider:focus {
+  border-color: var(--accent);
+}
+
+.size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-app);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+  cursor: pointer;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.size-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 4px var(--accent-glow);
+  transform: scale(1.15);
+}
+
+.size-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-app);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+  cursor: pointer;
+}
+
+.size-slider::-moz-range-track {
+  height: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-dim);
+  border-radius: 3px;
 }
 
 .options-divider {
@@ -677,9 +725,11 @@ math-field:focus-within {
   pointer-events: none;
 }
 
-/* Hide MathLive virtual keyboard completely */
-.ML__keyboard {
-  display: none !important;
+/* Hide MathLive virtual keyboard on desktop only; allow on touch/mobile */
+@media (hover: hover) and (pointer: fine) {
+  .ML__keyboard {
+    display: none !important;
+  }
 }
 
 /* Hide MathLive context menu */

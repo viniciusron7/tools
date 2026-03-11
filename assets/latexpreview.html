@@ -89,15 +89,9 @@
                     Transparente
                 </label>
             </div>
-            <div class="option-group">
-                <label for="size-select">Tamanho</label>
-                <select id="size-select" class="size-select" title="Tamanho da equação">
-                    <option value="0.5">Pequeno</option>
-                    <option value="1.5" selected>Médio</option>
-                    <option value="2.5">Grande</option>
-                    <option value="4">Muito Grande</option>
-                    <option value="6">Extra Grande</option>
-                </select>
+            <div class="option-group size-slider-group">
+                <label for="size-slider">Tamanho <span id="size-value" class="size-value">5</span></label>
+                <input type="range" id="size-slider" class="size-slider" min="1" max="10" value="5" step="1" title="Tamanho da equação (1–10)">
             </div>
         </div>
         <div class="options-divider"></div>

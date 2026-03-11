@@ -22,7 +22,8 @@ const toastEl     = document.getElementById('toast');
 const textColorInput   = document.getElementById('text-color');
 const bgColorInput     = document.getElementById('bg-color');
 const bgTransparentCb  = document.getElementById('bg-transparent');
-const sizeSelect       = document.getElementById('size-select');
+const sizeSlider       = document.getElementById('size-slider');
+const sizeValueLabel   = document.getElementById('size-value');
 
 // ----- Toast Notification -----
 let toastTimer = null;
@@ -39,10 +40,13 @@ function applyPreviewStyles() {
   const textColor = textColorInput.value;
   const bgTransparent = bgTransparentCb.checked;
   const bgColor = bgTransparent ? 'transparent' : bgColorInput.value;
-  const size = parseFloat(sizeSelect.value);
+  const sliderVal = parseInt(sizeSlider.value, 10);
+  sizeValueLabel.textContent = sliderVal;
+  // Map slider 1–10 to preview font size (0.6rem – 5rem)
+  const size = 0.6 + (sliderVal - 1) * (4.4 / 9);
 
   previewEl.style.color = textColor;
-  previewEl.style.fontSize = `${size}rem`;
+  previewEl.style.fontSize = `${size.toFixed(2)}rem`;
 
   const previewBody = previewEl.closest('.preview-body');
   if (previewBody) {
@@ -240,11 +244,10 @@ async function latexToSVG(latex) {
 
   // Convert ex-based dimensions to px for reliable canvas rendering.
   // MathJax outputs width/height in "ex" units (e.g. "20.765ex").
-  // 1ex ≈ 0.5em; at 16px base → 1ex ≈ 8px. Using 10px as base.
-  // Scale by the user-chosen size factor so smaller/larger settings
-  // produce proportionally smaller/larger exported images.
-  const sizeFactor = parseFloat(sizeSelect.value) || 1.5;
-  const EX_TO_PX = 10 * sizeFactor;
+  // The slider (1–10) linearly scales the exported image dimensions.
+  // Base factor ≈ 5/3 so slider 1 ≈ smallest, slider 10 ≈ 10× that.
+  const sliderVal = parseInt(sizeSlider.value, 10) || 5;
+  const EX_TO_PX = (5 / 3) * sliderVal;
   const widthAttr = svg.getAttribute('width') || '';
   const heightAttr = svg.getAttribute('height') || '';
 
@@ -418,7 +421,7 @@ function setExportLoading(btn, loading) {
 const SYMBOL_CATEGORIES = [
   {
     id: 'basico',
-    label: 'Básico',
+    label: 'Operators',
     symbols: [
       { latex: '\\frac{#?}{#?}',    display: '\\frac{a}{b}' },
       { latex: '\\sqrt{#?}',         display: '\\sqrt{x}' },
@@ -453,7 +456,7 @@ const SYMBOL_CATEGORIES = [
   },
   {
     id: 'calculo',
-    label: 'Cálculo',
+    label: 'Calculus',
     symbols: [
       { latex: '\\int',                              display: '\\int' },
       { latex: '\\int_{#?}^{#?}',                     display: '\\int_a^b' },
@@ -474,7 +477,7 @@ const SYMBOL_CATEGORIES = [
   },
   {
     id: 'trigonometria',
-    label: 'Trigonometria',
+    label: 'Trigonometry',
     symbols: [
       { latex: '\\sin',    display: '\\sin' },
       { latex: '\\cos',    display: '\\cos' },
@@ -492,7 +495,7 @@ const SYMBOL_CATEGORIES = [
   },
   {
     id: 'matrizes',
-    label: 'Matrizes',
+    label: 'Matrices',
     symbols: [
       { latex: '\\begin{pmatrix} #? & #? \\\\ #? & #? \\end{pmatrix}',                            display: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
       { latex: '\\begin{bmatrix} #? & #? \\\\ #? & #? \\end{bmatrix}',                            display: '\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}' },
@@ -515,7 +518,7 @@ const SYMBOL_CATEGORIES = [
   },
   {
     id: 'grego',
-    label: 'Grego',
+    label: 'Greek',
     symbols: [
       { latex: '\\alpha' },
       { latex: '\\beta' },
@@ -557,7 +560,7 @@ const SYMBOL_CATEGORIES = [
   },
   {
     id: 'conjuntos',
-    label: 'Conjuntos',
+    label: 'Sets',
     symbols: [
       { latex: '\\forall',      display: '\\forall' },
       { latex: '\\exists',      display: '\\exists' },
@@ -582,7 +585,7 @@ const SYMBOL_CATEGORIES = [
   },
   {
     id: 'setas',
-    label: 'Setas',
+    label: 'Arrows',
     symbols: [
       { latex: '\\to',              display: '\\to' },
       { latex: '\\gets',            display: '\\gets' },
@@ -601,7 +604,7 @@ const SYMBOL_CATEGORIES = [
   },
   {
     id: 'acentos',
-    label: 'Acentos',
+    label: 'Accents',
     symbols: [
       { latex: '\\hat{#?}',       display: '\\hat{a}' },
       { latex: '\\bar{#?}',       display: '\\bar{a}' },
@@ -789,7 +792,9 @@ function configureMathField() {
   mathEditor.smartSuperscript = true;
   mathEditor.keypressSound = null;
   mathEditor.plonkSound = null;
-  mathEditor.mathVirtualKeyboardPolicy = 'manual'; // we use our own palette
+  // On touch devices, allow MathLive's virtual keyboard; on desktop, use our palette only
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  mathEditor.mathVirtualKeyboardPolicy = isTouchDevice ? 'auto' : 'manual';
 
   // Space key: insert thin math-space instead of just moving the cursor
   mathEditor.mathModeSpace = '\\;';
@@ -992,7 +997,7 @@ function init() {
   textColorInput.addEventListener('input', applyPreviewStyles);
   bgColorInput.addEventListener('input', applyPreviewStyles);
   bgTransparentCb.addEventListener('change', applyPreviewStyles);
-  sizeSelect.addEventListener('change', applyPreviewStyles);
+  sizeSlider.addEventListener('input', applyPreviewStyles);
 
   // Copy buttons
   copyBtn.addEventListener('click', copyLatex);
