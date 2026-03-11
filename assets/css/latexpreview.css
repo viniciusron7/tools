@@ -1,0 +1,768 @@
+/* ============================================================
+   LaTeX Editor — Warm Industrial Dark Theme
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ----- Design Tokens ----- */
+:root {
+  --bg-app:       #0a0a0c;
+  --bg-surface:   #14141a;
+  --bg-elevated:  #1f1f26;
+  --bg-input:     #0f0f14;
+
+  --border-dim:   #2a2a32;
+  --border-focus: #c48a2a;
+
+  --text-primary:   #ede9e3;
+  --text-secondary: #9a9590;
+  --text-muted:     #5c5955;
+
+  --accent:       #e0a040;
+  --accent-dim:   rgba(224, 160, 64, .10);
+  --accent-glow:  rgba(224, 160, 64, .18);
+
+  --red:          #d46464;
+  --green:        #5cb77a;
+  --amber:        #d4a03c;
+
+  --radius-s:     6px;
+  --radius-m:     10px;
+  --radius-l:     14px;
+
+  --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+
+  --shadow-card:  0 1px 3px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.25);
+  --shadow-glow:  0 0 0 3px var(--accent-dim);
+
+  --transition:   .2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ----- Reset ----- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ----- Back Button ----- */
+.back-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  z-index: 50;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  box-shadow: var(--shadow-card);
+}
+
+.back-btn:hover {
+  border-color: var(--accent);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 16px rgba(224, 160, 64, 0.15);
+}
+
+/* ----- Header ----- */
+.app-header {
+  padding: 16px 24px 16px 68px;
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.app-header h1 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text-primary);
+}
+
+.header-subtitle {
+  font-size: .78rem;
+  color: var(--text-secondary);
+  letter-spacing: .01em;
+}
+
+/* ----- Two-Panel Grid ----- */
+.panels {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.2fr 6px 1fr;
+  gap: 0;
+  background: var(--bg-app);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ----- Resize Handle ----- */
+.resize-handle {
+  width: 6px;
+  background: var(--border-dim);
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  transition: background var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resize-handle::after {
+  content: '';
+  width: 2px;
+  height: 32px;
+  border-radius: 1px;
+  background: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.resize-handle:hover,
+.resize-handle.dragging {
+  background: var(--accent);
+}
+
+.resize-handle:hover::after,
+.resize-handle.dragging::after {
+  opacity: 1;
+  background: #fff;
+}
+
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.resizing iframe,
+body.resizing math-field {
+  pointer-events: none;
+}
+
+/* ----- Panel (shared) ----- */
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  min-height: 0;
+  overflow: hidden;
+}
+
+#output-panel {
+  overflow: visible;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-dim);
+  flex-shrink: 0;
+}
+
+.panel-header h2 {
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+}
+
+/* ----- View Toggle (Code / Preview) ----- */
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-s);
+  padding: 2px;
+}
+
+.toggle-tab {
+  padding: 5px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: .74rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.toggle-tab:hover {
+  color: var(--text-primary);
+}
+
+.toggle-tab.active {
+  background: var(--accent);
+  color: #0a0a0c;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+
+/* ----- View Content Toggle ----- */
+.panel-body.view-content {
+  display: none;
+}
+
+.panel-body.view-content.active {
+  display: flex;
+}
+
+.panel-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* ----- Panel 1: Editor (MathLive) ----- */
+.editor-body {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+math-field {
+  flex: 1;
+  font-size: 22px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-dim);
+  border-radius: var(--radius-m);
+  padding: 14px 16px;
+  min-height: 80px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  --caret-color: var(--accent);
+  --selection-background-color: var(--accent-dim);
+  --smart-fence-color: var(--accent);
+  --contains-highlight-background-color: var(--accent-dim);
+}
+
+math-field:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-glow);
+  outline: none;
+}
+
+/* ----- Panel 2: Code ----- */
+.code-body {
+  padding: 24px 16px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.code-block {
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-dim);
+  border-radius: var(--radius-m);
+  padding: 16px 32px;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: .87rem;
+  line-height: 1.65;
+  color: var(--accent);
+  white-space: pre-wrap;
+  word-break: break-all;
+  tab-size: 2;
+  max-width: 90%;
+  width: fit-content;
+  text-align: center;
+}
+
+/* Syntax highlight classes */
+.code-block .hl-cmd  { color: #a78bfa; }
+.code-block .hl-brace { color: #e0a040; }
+.code-block .hl-num  { color: #d4a03c; }
+.code-block .hl-sup  { color: #5cb77a; }
+.code-block .hl-sub  { color: #5cb77a; }
+.code-block .hl-text { color: var(--text-primary); }
+
+/* Copy button */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-s);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: .74rem;
+  font-weight: 500;
+  transition: all var(--transition);
+}
+
+.btn-icon:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-icon.copied {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.copy-label {
+  pointer-events: none;
+}
+
+/* ----- Panel 3: Preview ----- */
+.preview-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow: visible;
+  transition: background-color var(--transition);
+  flex: 1 0 auto;
+}
+
+#preview {
+  font-size: 1.5rem;
+  line-height: 1.8;
+  text-align: center;
+  width: 100%;
+  overflow: visible;
+  padding: 12px 8px;
+  transition: color var(--transition), font-size var(--transition);
+}
+
+#preview .katex-display {
+  margin: 0;
+  padding: 8px 0;
+  overflow: visible;
+}
+
+#preview .katex-display > .katex {
+  overflow: visible;
+  padding: 4px 0;
+  white-space: normal;
+}
+
+#preview .katex-error {
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: .82rem;
+}
+
+/* ----- Export Footer ----- */
+.export-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 24px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-dim);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.export-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* ----- Export Options (Color + Size) ----- */
+.export-options {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.option-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.option-group label {
+  font-size: .73rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.option-group input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--border-dim);
+  border-radius: var(--radius-s);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  padding: 2px;
+  transition: border-color var(--transition);
+}
+
+.option-group input[type="color"]:hover {
+  border-color: var(--accent);
+}
+
+.option-group input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 1px;
+}
+
+.option-group input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px;
+}
+
+.option-group input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 3px;
+}
+
+.transparent-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: .7rem;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.transparent-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.size-select {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-dim);
+  border-radius: var(--radius-s);
+  padding: 5px 10px;
+  font-size: .78rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  appearance: auto;
+}
+
+.size-select:hover,
+.size-select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.options-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-dim);
+  flex-shrink: 0;
+}
+
+.btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-s);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.btn-export:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-export:active {
+  transform: scale(.97);
+}
+
+.btn-export:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.btn-export.loading {
+  position: relative;
+  color: transparent;
+}
+
+.btn-export.loading::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.export-status {
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+/* ----- Toast Notification ----- */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-m);
+  padding: 10px 22px;
+  font-size: .82rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s, transform .3s;
+  z-index: 1000;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* ----- Symbol Palette ----- */
+.symbol-palette {
+  margin-top: 12px;
+  border: 1.5px solid var(--border-dim);
+  border-radius: var(--radius-m);
+  background: var(--bg-input);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.palette-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 0;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-dim);
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+
+.palette-tabs::-webkit-scrollbar { display: none; }
+
+.palette-tab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.palette-tab:hover {
+  color: var(--text-primary);
+  background: var(--accent-dim);
+}
+
+.palette-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 6px;
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 260px;
+}
+
+.sym-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  color: var(--text-primary);
+  font-size: 1.35rem;
+  min-height: 54px;
+  cursor: pointer;
+  transition: all var(--transition);
+  padding: 6px;
+  overflow: hidden;
+}
+
+.sym-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sym-btn:active {
+  transform: scale(.92);
+}
+
+.sym-btn .katex {
+  font-size: 1.25em;
+  pointer-events: none;
+}
+
+/* Hide MathLive virtual keyboard completely */
+.ML__keyboard {
+  display: none !important;
+}
+
+/* Hide MathLive context menu */
+.ui-menu-container {
+  display: none !important;
+}
+
+/* ----- Scrollbar Styling ----- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-dim);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 960px) {
+  .panels {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto;
+    gap: 1px;
+  }
+
+  .resize-handle {
+    display: none;
+  }
+
+  .panel-body {
+    max-height: 40vh;
+  }
+
+  .panel-body.preview-body {
+    max-height: none;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .view-toggle {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 600px) {
+  html { font-size: 14px; }
+
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .panel-header {
+    padding: 8px 12px;
+  }
+
+  .editor-body,
+  .code-body {
+    padding: 12px;
+  }
+
+  math-field {
+    font-size: 18px;
+    padding: 10px 12px;
+  }
+
+  .export-bar {
+    padding: 10px 12px;
+  }
+
+  .btn-export {
+    padding: 7px 14px;
+    font-size: .78rem;
+  }
+}

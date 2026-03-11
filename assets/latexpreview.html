@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX Editor — Editor de Equações</title>
+    <link rel="stylesheet" href="./libs/katex/katex.min.css">
+    <link rel="stylesheet" href="./libs/mathlive/mathlive-fonts.css">
+    <link rel="stylesheet" href="./css/latexpreview.css">
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-brand">
+            <svg class="header-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 7h6l3 10L17 7h3"/>
+                <path d="M7 21l5-7 5 7" opacity=".45"/>
+            </svg>
+            <h1>LaTeX Editor</h1>
+        </div>
+        <p class="header-subtitle">Editor visual de equações matemáticas — 100% offline</p>
+    </header>
+
+    <!-- Main 3-panel layout -->
+    <main id="app" class="panels">
+
+        <!-- Panel 1: Editor Visual (MathLive) + Symbol Palette -->
+        <section id="editor-panel" class="panel" aria-label="Editor visual de equações">
+            <div class="panel-header">
+                <h2>Editor Visual</h2>
+            </div>
+            <div class="panel-body editor-body">
+                <math-field id="math-editor"></math-field>
+
+                <!-- Symbol Palette -->
+                <div id="symbol-palette" class="symbol-palette" aria-label="Paleta de símbolos">
+                    <nav class="palette-tabs" role="tablist"></nav>
+                    <div class="palette-grid" role="tabpanel"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resize handle -->
+        <div class="resize-handle" data-handle="0" role="separator" aria-label="Redimensionar painéis" tabindex="0"></div>
+
+        <!-- Panel 2: Código LaTeX / Preview (toggle) -->
+        <section id="output-panel" class="panel" aria-label="Código e pré-visualização">
+            <div class="panel-header">
+                <div class="view-toggle" role="tablist" aria-label="Alternar entre código e preview">
+                    <button class="toggle-tab active" data-view="preview" role="tab" aria-selected="true">Preview</button>
+                    <button class="toggle-tab" data-view="code" role="tab" aria-selected="false">Código LaTeX</button>
+                </div>
+                <button id="copy-btn" class="btn-icon" title="Copiar código LaTeX" aria-label="Copiar código LaTeX">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    <span class="copy-label">Copiar</span>
+                </button>
+                <button id="copy-img-btn" class="btn-icon" title="Copiar imagem PNG" aria-label="Copiar imagem PNG">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span class="copy-img-label">Copiar Imagem</span>
+                </button>
+            </div>
+            <div class="panel-body preview-body view-content active" data-view="preview">
+                <div id="preview" aria-live="polite"></div>
+            </div>
+            <div class="panel-body code-body view-content" data-view="code">
+                <pre id="latex-code" class="code-block" aria-live="polite"><code></code></pre>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Export footer bar -->
+    <footer class="export-bar" aria-label="Exportar equação">
+        <div class="export-options">
+            <div class="option-group">
+                <label for="text-color">Cor do texto</label>
+                <input type="color" id="text-color" value="#ffffff" title="Cor do texto da equação">
+            </div>
+            <div class="option-group">
+                <label for="bg-color">Fundo</label>
+                <input type="color" id="bg-color" value="#ffffff" title="Cor de fundo">
+                <label class="transparent-toggle" title="Fundo transparente (apenas PNG)">
+                    <input type="checkbox" id="bg-transparent" checked>
+                    Transparente
+                </label>
+            </div>
+            <div class="option-group">
+                <label for="size-select">Tamanho</label>
+                <select id="size-select" class="size-select" title="Tamanho da equação">
+                    <option value="0.5">Pequeno</option>
+                    <option value="1.5" selected>Médio</option>
+                    <option value="2.5">Grande</option>
+                    <option value="4">Muito Grande</option>
+                    <option value="6">Extra Grande</option>
+                </select>
+            </div>
+        </div>
+        <div class="options-divider"></div>
+        <div class="export-group">
+            <button id="export-svg" class="btn-export" title="Baixar como SVG vetorial">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                SVG
+            </button>
+            <button id="export-png" class="btn-export" title="Baixar como imagem PNG">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                PNG
+            </button>
+            <button id="export-pdf" class="btn-export" title="Baixar como documento PDF">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                PDF
+            </button>
+        </div>
+        <div id="export-status" class="export-status" aria-live="polite"></div>
+    </footer>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- Scripts — local, offline -->
+    <script src="./libs/katex/katex.min.js"></script>
+    <script defer src="./libs/mathlive/mathlive.min.mjs" type="module"></script>
+    <script type="module" src="./js/latexpreview.js"></script>
+</body>
+</html>

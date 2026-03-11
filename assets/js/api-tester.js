@@ -69,17 +69,44 @@ function isValidUrl(string) {
 
 // Query parameters
 function addQueryParam() {
+    appendQueryParamRow();
+}
+
+function appendQueryParamRow(key = '', value = '', enabled = true) {
     const container = document.getElementById('queryParams');
     const item = document.createElement('div');
     item.className = 'list-item';
-    item.innerHTML = `
-        <input type="text" placeholder="Chave" class="param-key" oninput="updateUrlPreview()">
-        <input type="text" placeholder="Valor" class="param-value" oninput="updateUrlPreview()">
-        <label class="checkbox-group">
-            <input type="checkbox" checked onchange="updateUrlPreview()"> Ativo
-        </label>
-        <button class="remove-btn" onclick="removeItem(this)">X</button>
-    `;
+
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.placeholder = 'Chave';
+    keyInput.className = 'param-key';
+    keyInput.value = key;
+    keyInput.oninput = updateUrlPreview;
+
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.placeholder = 'Valor';
+    valueInput.className = 'param-value';
+    valueInput.value = value;
+    valueInput.oninput = updateUrlPreview;
+
+    const label = document.createElement('label');
+    label.className = 'checkbox-group';
+
+    const enabledInput = document.createElement('input');
+    enabledInput.type = 'checkbox';
+    enabledInput.checked = enabled;
+    enabledInput.onchange = updateUrlPreview;
+
+    label.appendChild(enabledInput);
+    label.appendChild(document.createTextNode(' Ativo'));
+
+    item.appendChild(keyInput);
+    item.appendChild(valueInput);
+    item.appendChild(label);
+    item.appendChild(createRemoveButton());
+
     container.appendChild(item);
 }
 
@@ -103,22 +130,34 @@ function updateUrlPreview() {
 
 // Headers
 function addHeader() {
+    appendHeaderRow();
+}
+
+function appendHeaderRow(key = '', value = '') {
     const container = document.getElementById('requestHeaders');
     const item = document.createElement('div');
     item.className = 'list-item';
-    item.innerHTML = `
-        <input type="text" placeholder="Header" class="header-key">
-        <input type="text" placeholder="Valor" class="header-value">
-        <button class="remove-btn" onclick="removeItem(this)">X</button>
-    `;
+
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.placeholder = 'Header';
+    keyInput.className = 'header-key';
+    keyInput.value = key;
+
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.placeholder = 'Valor';
+    valueInput.className = 'header-value';
+    valueInput.value = value;
+
+    item.appendChild(keyInput);
+    item.appendChild(valueInput);
+    item.appendChild(createRemoveButton());
+
     container.appendChild(item);
 }
 
 function addCommonHeader(headerName) {
-    const container = document.getElementById('requestHeaders');
-    const item = document.createElement('div');
-    item.className = 'list-item';
-    
     let placeholder = '';
     switch(headerName) {
         case 'Authorization':
@@ -131,13 +170,8 @@ function addCommonHeader(headerName) {
             placeholder = 'application/json';
             break;
     }
-    
-    item.innerHTML = `
-        <input type="text" placeholder="Header" class="header-key" value="${headerName}">
-        <input type="text" placeholder="Valor" class="header-value" placeholder="${placeholder}">
-        <button class="remove-btn" onclick="removeItem(this)">X</button>
-    `;
-    container.appendChild(item);
+
+    appendHeaderRow(headerName, placeholder);
 }
 
 function exportHeaders() {
@@ -257,6 +291,72 @@ function formatFileSize(bytes) {
 function removeItem(button) {
     button.parentElement.remove();
     updateUrlPreview();
+}
+
+function createRemoveButton() {
+    const button = document.createElement('button');
+    button.className = 'remove-btn';
+    button.type = 'button';
+    button.textContent = 'X';
+    button.onclick = function() {
+        removeItem(this);
+    };
+    return button;
+}
+
+function normalizeCurlCommand(command) {
+    return command
+        .replace(/\\\s*\r?\n\s*/g, ' ')
+        .replace(/\^\s*\r?\n\s*/g, ' ')
+        .replace(/\^(.?)/g, (_, char) => char || '')
+        .replace(/\\"/g, '"')
+        .trim();
+}
+
+function tokenizeCurlCommand(command) {
+    const tokens = [];
+    let current = '';
+    let quote = null;
+
+    for (let i = 0; i < command.length; i++) {
+        const ch = command[i];
+
+        if (quote) {
+            if (ch === '\\' && i + 1 < command.length) {
+                current += command[i + 1];
+                i++;
+                continue;
+            }
+
+            if (ch === quote) {
+                quote = null;
+            } else {
+                current += ch;
+            }
+            continue;
+        }
+
+        if (ch === '"' || ch === '\'') {
+            quote = ch;
+            continue;
+        }
+
+        if (/\s/.test(ch)) {
+            if (current) {
+                tokens.push(current);
+                current = '';
+            }
+            continue;
+        }
+
+        current += ch;
+    }
+
+    if (current) {
+        tokens.push(current);
+    }
+
+    return tokens;
 }
 
 // CORS proxy list (fallbacks)
@@ -442,6 +542,7 @@ async function handleResponse(response, responseTime, requestData) {
     try {
         const text = await response.text();
         responseSize.textContent = formatFileSize(text.length);
+        responseBody.classList.remove('empty-state');
         
         try {
             const json = JSON.parse(text);
@@ -450,6 +551,7 @@ async function handleResponse(response, responseTime, requestData) {
             responseBody.textContent = text;
         }
     } catch (error) {
+        responseBody.classList.remove('empty-state');
         responseBody.textContent = 'Erro ao ler resposta: ' + error.message;
     }
 }
@@ -474,6 +576,7 @@ function handleError(error) {
     document.getElementById('responseTime').textContent = '-';
     document.getElementById('responseSize').textContent = '-';
     
+    responseBody.classList.remove('empty-state');
     responseBody.textContent = `Erro na requisição: ${error.message}`;
 }
 
@@ -630,62 +733,66 @@ function importFromCurl() {
     if (!curlCommand) return;
 
     try {
-        // Normalizar: remover quebras de linha com \
-        const normalized = curlCommand.replace(/\\\s*\n\s*/g, ' ').trim();
+        const normalized = normalizeCurlCommand(curlCommand);
+        const tokens = tokenizeCurlCommand(normalized);
 
-        // Extrair método
-        const methodMatch = normalized.match(/-X\s+(\w+)/i);
-        if (methodMatch) {
-            document.getElementById('httpMethod').value = methodMatch[1].toUpperCase();
-            updateMethodIndicator();
-        } else {
-            // Se não tem -X, inferir pelo -d (POST) ou padrão (GET)
-            if (/-d\s+/.test(normalized)) {
-                document.getElementById('httpMethod').value = 'POST';
-            } else {
-                document.getElementById('httpMethod').value = 'GET';
-            }
-            updateMethodIndicator();
+        if (!tokens.length || tokens[0].toLowerCase() !== 'curl') {
+            throw new Error('Comando inválido. Certifique-se de começar com curl.');
         }
 
-        // Extrair URL — suporta aspas simples, duplas ou sem aspas
+        let method = null;
         let rawUrl = null;
-        const urlMatchSingle = normalized.match(/'(https?:\/\/[^']+)'/);
-        const urlMatchDouble = normalized.match(/"(https?:\/\/[^"]+)"/);
-        const urlMatchBare = normalized.match(/(?:^|\s)(https?:\/\/\S+)/);
+        const headers = [];
+        const bodyParts = [];
 
-        if (urlMatchSingle) {
-            rawUrl = urlMatchSingle[1];
-        } else if (urlMatchDouble) {
-            rawUrl = urlMatchDouble[1];
-        } else if (urlMatchBare) {
-            rawUrl = urlMatchBare[1];
+        for (let i = 1; i < tokens.length; i++) {
+            const token = tokens[i];
+
+            if ((token === '-X' || token === '--request') && tokens[i + 1]) {
+                method = tokens[++i].toUpperCase();
+                continue;
+            }
+
+            if ((token === '-H' || token === '--header') && tokens[i + 1]) {
+                headers.push(tokens[++i]);
+                continue;
+            }
+
+            if ((token === '-d' || token === '--data' || token === '--data-raw' || token === '--data-binary' || token === '--data-urlencode') && tokens[i + 1]) {
+                bodyParts.push(tokens[++i]);
+                continue;
+            }
+
+            if (token === '--url' && tokens[i + 1]) {
+                rawUrl = tokens[++i];
+                continue;
+            }
+
+            if (/^https?:\/\//i.test(token) && !rawUrl) {
+                rawUrl = token;
+            }
         }
+
+        if (!method) {
+            method = bodyParts.length > 0 ? 'POST' : 'GET';
+        }
+
+        document.getElementById('httpMethod').value = method;
+        updateMethodIndicator();
 
         if (rawUrl) {
-            // Separar base URL e query params
             try {
                 const urlObj = new URL(rawUrl);
                 const baseUrl = urlObj.origin + urlObj.pathname;
                 document.getElementById('apiUrl').value = baseUrl;
 
-                // Limpar query params existentes e adicionar os da URL
                 const queryParamsContainer = document.getElementById('queryParams');
                 queryParamsContainer.innerHTML = '';
 
-                if (urlObj.searchParams && [...urlObj.searchParams].length > 0) {
-                    urlObj.searchParams.forEach((value, key) => {
-                        const item = document.createElement('div');
-                        item.className = 'list-item';
-                        item.innerHTML = `
-                            <input type="text" placeholder="Chave" class="param-key" oninput="updateUrlPreview()" value="${key}">
-                            <input type="text" placeholder="Valor" class="param-value" oninput="updateUrlPreview()" value="${value}">
-                            <label class="checkbox-group">
-                                <input type="checkbox" checked onchange="updateUrlPreview()"> Ativo
-                            </label>
-                            <button class="remove-btn" onclick="removeItem(this)">X</button>
-                        `;
-                        queryParamsContainer.appendChild(item);
+                const queryEntries = [...urlObj.searchParams.entries()];
+                if (queryEntries.length > 0) {
+                    queryEntries.forEach(([key, value]) => {
+                        appendQueryParamRow(key, value, true);
                     });
                 } else {
                     addQueryParam();
@@ -697,38 +804,24 @@ function importFromCurl() {
             validateUrl();
         }
 
-        // Extrair headers (-H 'Key: Value' ou -H "Key: Value")
-        const headerRegex = /-H\s+['"]([^'"]+)['"]/g;
-        let headerMatch;
         const headersContainer = document.getElementById('requestHeaders');
         headersContainer.innerHTML = '';
-        let foundHeaders = false;
 
-        while ((headerMatch = headerRegex.exec(normalized)) !== null) {
-            foundHeaders = true;
-            const colonIdx = headerMatch[1].indexOf(':');
+        headers.forEach((headerLine) => {
+            const colonIdx = headerLine.indexOf(':');
             if (colonIdx > -1) {
-                const hKey = headerMatch[1].substring(0, colonIdx).trim();
-                const hValue = headerMatch[1].substring(colonIdx + 1).trim();
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <input type="text" placeholder="Header" class="header-key" value="${hKey}">
-                    <input type="text" placeholder="Valor" class="header-value" value="${hValue}">
-                    <button class="remove-btn" onclick="removeItem(this)">X</button>
-                `;
-                headersContainer.appendChild(item);
+                const hKey = headerLine.substring(0, colonIdx).trim();
+                const hValue = headerLine.substring(colonIdx + 1).trim();
+                appendHeaderRow(hKey, hValue);
             }
-        }
+        });
 
-        if (!foundHeaders) {
+        if (headers.length === 0) {
             addHeader();
         }
 
-        // Extrair body (-d 'data' ou -d "data" ou --data 'data')
-        const bodyMatch = normalized.match(/(?:-d|--data)\s+['"]([\s\S]*?)['"]/);
-        if (bodyMatch) {
-            const bodyContent = bodyMatch[1];
+        if (bodyParts.length > 0) {
+            const bodyContent = bodyParts.join('&');
             try {
                 JSON.parse(bodyContent);
                 document.getElementById('contentType').value = 'application/json';
