@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Tester</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/regex-tester.css">
+</head>
+<body>
+    <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+
+    <div class="container">
+        <header class="header">
+            <h1>Regex Tester</h1>
+            <p>Teste e valide expressões regulares em tempo real</p>
+        </header>
+
+        <div class="regex-row">
+            <div class="regex-field-wrapper" id="regexFieldWrapper">
+                <span class="regex-delim">/</span>
+                <input
+                    type="text"
+                    id="regexInput"
+                    class="regex-input"
+                    placeholder="Digite uma expressão regex (ex: \d+, \w+, ^abc)"
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                >
+                <span class="regex-delim">/</span>
+                <span class="regex-flags-display" id="flagsDisplay">g</span>
+            </div>
+
+            <div class="flags-group" role="group" aria-label="Flags da expressão regular">
+                <label class="flag-label checked" id="label-g">
+                    <input type="checkbox" id="flag-g" value="g" checked>
+                    <code>g</code>
+                </label>
+                <label class="flag-label" id="label-i">
+                    <input type="checkbox" id="flag-i" value="i">
+                    <code>i</code>
+                </label>
+                <label class="flag-label" id="label-m">
+                    <input type="checkbox" id="flag-m" value="m">
+                    <code>m</code>
+                </label>
+                <label class="flag-label" id="label-s">
+                    <input type="checkbox" id="flag-s" value="s">
+                    <code>s</code>
+                </label>
+            </div>
+
+            <button class="btn-example" onclick="loadExample()" title="Preencher com exemplo">Exemplo</button>
+        </div>
+
+        <p class="flags-hint">
+            <span>g = todas as ocorrências</span>
+            <span>i = ignora maiúsculas</span>
+            <span>m = multiline</span>
+            <span>s = ponto inclui \n</span>
+        </p>
+
+        <button class="btn-help-toggle" onclick="toggleHelp()" id="helpToggleBtn">Ajuda rápida de regex ▸</button>
+        <div class="help-section" id="helpSection" style="display:none">
+            <table class="help-table">
+                <thead>
+                    <tr><th>Padrão</th><th>Descrição</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>\d+</td><td>Encontra números</td></tr>
+                    <tr><td>\w+</td><td>Encontra palavras (letras, dígitos, _)</td></tr>
+                    <tr><td>\s+</td><td>Encontra espaços em branco</td></tr>
+                    <tr><td>(\d{2})-(\d{4})</td><td>Captura grupos (ex: 12-3456)</td></tr>
+                    <tr><td>^abc</td><td>Começa com abc</td></tr>
+                    <tr><td>abc$</td><td>Termina com abc</td></tr>
+                    <tr><td>[a-z]+</td><td>Somente letras minúsculas</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="regex-error" id="regexError" aria-live="polite"></p>
+
+        <div class="text-areas">
+            <div class="text-area-wrapper">
+                <label for="testText">Texto de teste</label>
+                <textarea
+                    id="testText"
+                    placeholder="Cole o texto aqui para testar a expressão regular..."
+                ></textarea>
+                <span class="char-count" id="testTextCount">0 caracteres</span>
+            </div>
+
+            <div class="text-area-wrapper">
+                <div class="label-row">
+                    <label>Visualização</label>
+                    <span class="match-count-badge zero" id="matchBadge">0 correspondências</span>
+                </div>
+                <div
+                    class="highlight-output"
+                    id="highlightOutput"
+                    aria-label="Visualização dos matches"
+                    aria-live="polite"
+                ><span class="placeholder-text">Os destaques aparecerão aqui...</span></div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-test" onclick="runTest()">Testar</button>
+            <button class="btn-copy-regex" onclick="copyRegex()">Copiar regex</button>
+            <button class="btn-clear" onclick="clearAll()">Limpar</button>
+        </div>
+
+        <div class="groups-section" id="groupsSection">
+            <div class="groups-header">
+                <span class="groups-title">Grupos capturados</span>
+            </div>
+            <div class="groups-body" id="groupsBody">
+                <span class="no-groups-msg">Nenhum grupo capturado</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/regex-tester.js"></script>
+</body>
+</html>

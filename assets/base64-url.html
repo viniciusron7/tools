@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 &amp; URL Encode/Decode</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/base64-url.css">
+</head>
+<body>
+    <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </a>
+
+    <div class="container">
+        <header class="header">
+            <h1>Base64 &amp; URL</h1>
+            <p>Encode e decode de strings em Base64 e URL</p>
+        </header>
+
+        <div class="tabs" role="tablist">
+            <button class="tab active" id="tab-base64" role="tab" aria-selected="true" onclick="switchMode('base64')">Base64</button>
+            <button class="tab" id="tab-url" role="tab" aria-selected="false" onclick="switchMode('url')">URL</button>
+        </div>
+
+        <div class="text-areas">
+            <div class="text-area-wrapper">
+                <label for="input">Entrada</label>
+                <textarea id="input" placeholder="Cole aqui o texto para encodar ou o Base64 para decodar..."></textarea>
+                <span class="char-count" id="inputCount">0 caracteres</span>
+                <span class="byte-count" id="inputBytes">0 bytes</span>
+            </div>
+
+            <div class="text-area-wrapper">
+                <label for="output">Saída</label>
+                <textarea id="output" placeholder="O resultado aparecerá aqui..." readonly></textarea>
+                <span class="char-count" id="outputCount">0 caracteres</span>
+                <span class="byte-count" id="outputBytes">0 bytes</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-encode" onclick="encode()">Encode</button>
+            <button class="btn-decode" onclick="decode()">Decode</button>
+            <button class="btn-clear" onclick="clearAll()">Limpar</button>
+            <button class="btn-copy" onclick="copyOutput()">Copiar</button>
+        </div>
+
+        <button class="btn-ref-toggle" onclick="toggleRef()" id="refToggleBtn">Referência de caracteres ▸</button>
+
+        <div class="info-section" id="infoSection" style="display:none">
+            <div id="refBase64">
+                <h3>Alfabeto Base64</h3>
+                <table class="char-table">
+                    <thead>
+                        <tr>
+                            <th>Caracteres</th>
+                            <th>Descrição</th>
+                            <th>Quantidade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>A–Z</td><td>Letras maiúsculas</td><td>26</td></tr>
+                        <tr><td>a–z</td><td>Letras minúsculas</td><td>26</td></tr>
+                        <tr><td>0–9</td><td>Dígitos</td><td>10</td></tr>
+                        <tr><td>+</td><td>Sinal de mais</td><td>1</td></tr>
+                        <tr><td>/</td><td>Barra</td><td>1</td></tr>
+                        <tr><td>=</td><td>Padding (alinhamento de bloco)</td><td>0–2</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="refUrl" style="display:none">
+                <h3>Caracteres especiais — URL Encode</h3>
+                <table class="char-table">
+                    <thead>
+                        <tr>
+                            <th>Caractere</th>
+                            <th>Descrição</th>
+                            <th>Encoded</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>espaço</td><td>Espaço em branco</td><td>%20</td></tr>
+                        <tr><td>!</td><td>Exclamação</td><td>%21</td></tr>
+                        <tr><td>"</td><td>Aspas duplas</td><td>%22</td></tr>
+                        <tr><td>#</td><td>Cerquilha</td><td>%23</td></tr>
+                        <tr><td>$</td><td>Cifrão</td><td>%24</td></tr>
+                        <tr><td>&amp;</td><td>E comercial</td><td>%26</td></tr>
+                        <tr><td>'</td><td>Aspas simples</td><td>%27</td></tr>
+                        <tr><td>+</td><td>Sinal de mais</td><td>%2B</td></tr>
+                        <tr><td>,</td><td>Vírgula</td><td>%2C</td></tr>
+                        <tr><td>/</td><td>Barra</td><td>%2F</td></tr>
+                        <tr><td>:</td><td>Dois pontos</td><td>%3A</td></tr>
+                        <tr><td>;</td><td>Ponto e vírgula</td><td>%3B</td></tr>
+                        <tr><td>=</td><td>Igual</td><td>%3D</td></tr>
+                        <tr><td>?</td><td>Interrogação</td><td>%3F</td></tr>
+                        <tr><td>@</td><td>Arroba</td><td>%40</td></tr>
+                        <tr><td>[</td><td>Colchete abre</td><td>%5B</td></tr>
+                        <tr><td>]</td><td>Colchete fecha</td><td>%5D</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <button class="btn-ref-toggle" onclick="toggleHelp()" id="helpToggleBtn">Ajuda rápida ▸</button>
+
+        <div class="info-section" id="helpSection" style="display:none">
+            <h3>Base64 — exemplos</h3>
+            <table class="char-table">
+                <thead>
+                    <tr><th>Entrada</th><th>Resultado</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>hello</td><td>aGVsbG8=</td></tr>
+                    <tr><td>café</td><td>Y2Fmw6k=</td></tr>
+                    <tr><td>😀</td><td>8J+YgA==</td></tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: var(--space-md)">URL Encode — exemplos</h3>
+            <table class="char-table">
+                <thead>
+                    <tr><th>Entrada</th><th>Resultado</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>hello world</td><td>hello%20world</td></tr>
+                    <tr><td>café</td><td>caf%C3%A9</td></tr>
+                    <tr><td>a=b&amp;c</td><td>a%3Db%26c</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      function toggleRef() {
+        const sec = document.getElementById('infoSection');
+        const btn = document.getElementById('refToggleBtn');
+        const open = sec.style.display === 'block';
+        sec.style.display = open ? 'none' : 'block';
+        btn.textContent = open ? 'Referência de caracteres ▸' : 'Referência de caracteres ▾';
+      }
+
+      function toggleHelp() {
+        const sec = document.getElementById('helpSection');
+        const btn = document.getElementById('helpToggleBtn');
+        const open = sec.style.display === 'block';
+        sec.style.display = open ? 'none' : 'block';
+        btn.textContent = open ? 'Ajuda rápida ▸' : 'Ajuda rápida ▾';
+      }
+    </script>
+    <script src="js/base64-url.js"></script>
+</body>
+</html>

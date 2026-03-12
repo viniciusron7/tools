@@ -109,6 +109,8 @@ h1 .accent {
 .icon-latex  { background: var(--error-dim); color: var(--error); border: 1px solid rgba(212, 100, 100, 0.2); overflow: hidden; }
 .icon-latex .katex { font-size: 1.1rem; color: inherit; }
 .icon-escape { background: var(--info-dim); color: var(--info); border: 1px solid rgba(91, 141, 239, 0.2); }
+.icon-b64    { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(212, 160, 60, 0.2); }
+.icon-regex  { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167, 139, 250, 0.2); }
 
 .card-body {
   flex: 1;
