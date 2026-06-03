@@ -1,53 +1,86 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Formatar texto</title>
-  <link rel="stylesheet" href="css/common.css">
-  <link rel="stylesheet" href="css/formatartxt.css">
-</head>
-<body>
-  <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-  </a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formatar texto</title>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/formatartxt.css" />
+  </head>
+  <body>
+    <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M19 12H5" />
+        <path d="M12 19l-7-7 7-7" />
+      </svg>
+    </a>
 
-  <button class="history-toggle" id="btnHistorico" type="button" aria-label="Abrir histórico">
-    <img src="https://cdn-icons-png.freepik.com/512/3503/3503786.png" alt="Histórico" />
-  </button>
+    <button
+      class="history-toggle"
+      id="btnHistorico"
+      type="button"
+      aria-label="Abrir histórico"
+    >
+      <img
+        src="https://cdn-icons-png.freepik.com/512/3503/3503786.png"
+        alt="Histórico"
+      />
+    </button>
 
-  <aside class="history-panel" id="painelHistorico" aria-label="Histórico de textos">
-    <h2>Histórico</h2>
-    <div class="history-list" id="listaHistorico"></div>
-  </aside>
+    <aside
+      class="history-panel"
+      id="painelHistorico"
+      aria-label="Histórico de textos"
+    >
+      <h2>Histórico</h2>
+      <div class="history-list" id="listaHistorico"></div>
+    </aside>
 
-  <main class="container">
-    <h1>Formatar texto</h1>
+    <main class="container">
+      <h1>Formatar texto</h1>
 
-    <section class="replace-box" aria-label="Localizar e substituir">
-      <div class="replace-grid">
-        <div>
-          <label for="textoLocalizar">Localizar</label>
-          <textarea id="textoLocalizar" placeholder="Digite o texto (pode incluir quebra de linha)"></textarea>
+      <section class="replace-box" aria-label="Localizar e substituir">
+        <div class="replace-grid">
+          <div>
+            <label for="textoLocalizar">Localizar</label>
+            <textarea
+              id="textoLocalizar"
+              placeholder="Digite o texto (pode incluir quebra de linha)"
+            ></textarea>
+          </div>
+          <div>
+            <label for="textoSubstituir">Trocar por</label>
+            <textarea
+              id="textoSubstituir"
+              placeholder="Digite o texto de substituição"
+            ></textarea>
+          </div>
         </div>
-        <div>
-          <label for="textoSubstituir">Trocar por</label>
-          <textarea id="textoSubstituir" placeholder="Digite o texto de substituição"></textarea>
+        <div class="actions" style="margin-top: 10px">
+          <button id="btnLocalizarSubstituir" type="button">Substituir</button>
         </div>
-      </div>
-      <div class="actions" style="margin-top:10px;">
-        <button id="btnLocalizarSubstituir" type="button">Substituir</button>
-      </div>
-    </section>
+      </section>
 
-    <section class="grid">
-      <div>
-        <label for="textoEntrada">Texto</label>
-        <textarea id="textoEntrada" placeholder="Cole aqui o texto com quebras de linha..."></textarea>
-      </div>
-    </section>
-  </main>
+      <section class="grid">
+        <div>
+          <label for="textoEntrada">Texto</label>
+          <textarea
+            id="textoEntrada"
+            placeholder="Cole aqui o texto com quebras de linha..."
+          ></textarea>
+        </div>
+      </section>
+    </main>
 
-  <script src="js/formatartxt.js"></script>
-</body>
+    <script src="js/formatartxt.js"></script>
+  </body>
 </html>

@@ -1,7 +1,9 @@
 const entrada = document.getElementById("textoEntrada");
 const textoLocalizar = document.getElementById("textoLocalizar");
 const textoSubstituir = document.getElementById("textoSubstituir");
-const btnLocalizarSubstituir = document.getElementById("btnLocalizarSubstituir");
+const btnLocalizarSubstituir = document.getElementById(
+  "btnLocalizarSubstituir",
+);
 const btnHistorico = document.getElementById("btnHistorico");
 const painelHistorico = document.getElementById("painelHistorico");
 const listaHistorico = document.getElementById("listaHistorico");
@@ -14,12 +16,16 @@ function carregarHistorico() {
 
     if (dados && Array.isArray(dados.transicoes)) {
       historicoTransicoes = dados.transicoes;
-    } else if (dados && Array.isArray(dados.versoes) && dados.versoes.length > 1) {
+    } else if (
+      dados &&
+      Array.isArray(dados.versoes) &&
+      dados.versoes.length > 1
+    ) {
       historicoTransicoes = [];
       for (let i = 0; i < dados.versoes.length - 1; i += 1) {
         historicoTransicoes.push({
           original: dados.versoes[i].texto,
-          resultado: dados.versoes[i + 1].texto
+          resultado: dados.versoes[i + 1].texto,
         });
       }
       salvarHistorico();
@@ -35,7 +41,7 @@ function carregarHistorico() {
 function salvarHistorico() {
   localStorage.setItem(
     "formatarTextoHistorico",
-    JSON.stringify({ transicoes: historicoTransicoes })
+    JSON.stringify({ transicoes: historicoTransicoes }),
   );
 }
 
@@ -88,7 +94,7 @@ function renderizarHistorico() {
 function registrarTransicao(textoDe, textoPara) {
   historicoTransicoes.unshift({
     original: textoDe,
-    resultado: textoPara
+    resultado: textoPara,
   });
 
   if (historicoTransicoes.length > 40) {
@@ -109,12 +115,18 @@ function localizarESubstituir(texto, localizar, substituir) {
     return textoNormalizado;
   }
 
-  return textoNormalizado.split(localizarNormalizado).join(substituirNormalizado);
+  return textoNormalizado
+    .split(localizarNormalizado)
+    .join(substituirNormalizado);
 }
 
 btnLocalizarSubstituir.addEventListener("click", () => {
   const textoAtual = entrada.value;
-  const resultado = localizarESubstituir(textoAtual, textoLocalizar.value, textoSubstituir.value);
+  const resultado = localizarESubstituir(
+    textoAtual,
+    textoLocalizar.value,
+    textoSubstituir.value,
+  );
 
   if (resultado !== textoAtual) {
     registrarTransicao(textoAtual, resultado);

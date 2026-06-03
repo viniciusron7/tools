@@ -47,13 +47,27 @@
   font-family: var(--font-mono);
 }
 
-.method-get     { border-left: 3px solid var(--success); }
-.method-post    { border-left: 3px solid var(--info); }
-.method-put     { border-left: 3px solid var(--accent); }
-.method-delete  { border-left: 3px solid var(--error); }
-.method-patch   { border-left: 3px solid var(--purple); }
-.method-head    { border-left: 3px solid var(--text-muted); }
-.method-options { border-left: 3px solid var(--text-muted); }
+.method-get {
+  border-left: 3px solid var(--success);
+}
+.method-post {
+  border-left: 3px solid var(--info);
+}
+.method-put {
+  border-left: 3px solid var(--accent);
+}
+.method-delete {
+  border-left: 3px solid var(--error);
+}
+.method-patch {
+  border-left: 3px solid var(--purple);
+}
+.method-head {
+  border-left: 3px solid var(--text-muted);
+}
+.method-options {
+  border-left: 3px solid var(--text-muted);
+}
 
 .url-input {
   flex: 1;
@@ -98,8 +112,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Form elements */
@@ -226,10 +244,26 @@
   font-family: var(--font-mono);
 }
 
-.status-2xx { background: var(--success-dim); color: var(--success); border: 1px solid rgba(92, 183, 122, 0.2); }
-.status-3xx { background: var(--info-dim); color: var(--info); border: 1px solid rgba(91, 141, 239, 0.2); }
-.status-4xx { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(212, 160, 60, 0.2); }
-.status-5xx { background: var(--error-dim); color: var(--error); border: 1px solid rgba(212, 100, 100, 0.2); }
+.status-2xx {
+  background: var(--success-dim);
+  color: var(--success);
+  border: 1px solid rgba(92, 183, 122, 0.2);
+}
+.status-3xx {
+  background: var(--info-dim);
+  color: var(--info);
+  border: 1px solid rgba(91, 141, 239, 0.2);
+}
+.status-4xx {
+  background: var(--warning-dim);
+  color: var(--warning);
+  border: 1px solid rgba(212, 160, 60, 0.2);
+}
+.status-5xx {
+  background: var(--error-dim);
+  color: var(--error);
+  border: 1px solid rgba(212, 100, 100, 0.2);
+}
 
 /* Response body */
 .response-body {

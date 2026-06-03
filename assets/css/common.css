@@ -3,49 +3,49 @@
    Warm industrial dark theme with amber accents
    ═══════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 :root {
   /* Surfaces */
-  --bg-deep:        #0a0a0c;
-  --bg-base:        #111114;
-  --bg-surface:     #18181d;
-  --bg-elevated:    #1f1f26;
-  --bg-input:       #0e0e11;
-  --bg-hover:       #24242c;
+  --bg-deep: #0a0a0c;
+  --bg-base: #111114;
+  --bg-surface: #18181d;
+  --bg-elevated: #1f1f26;
+  --bg-input: #0e0e11;
+  --bg-hover: #24242c;
 
   /* Borders */
-  --border-subtle:  #2a2a33;
+  --border-subtle: #2a2a33;
   --border-default: #33333e;
-  --border-strong:  #44444f;
+  --border-strong: #44444f;
 
   /* Text */
-  --text-primary:   #ede9e3;
+  --text-primary: #ede9e3;
   --text-secondary: #9e9a93;
-  --text-muted:     #6b675f;
-  --text-faint:     #4a473f;
+  --text-muted: #6b675f;
+  --text-faint: #4a473f;
 
   /* Accent — warm amber */
-  --accent:         #e0a040;
-  --accent-dim:     #c48a2a;
-  --accent-glow:    rgba(224, 160, 64, 0.12);
-  --accent-border:  rgba(224, 160, 64, 0.25);
+  --accent: #e0a040;
+  --accent-dim: #c48a2a;
+  --accent-glow: rgba(224, 160, 64, 0.12);
+  --accent-border: rgba(224, 160, 64, 0.25);
 
   /* Semantic */
-  --success:        #5cb77a;
-  --success-dim:    rgba(92, 183, 122, 0.12);
-  --error:          #d46464;
-  --error-dim:      rgba(212, 100, 100, 0.12);
-  --info:           #5b8def;
-  --info-dim:       rgba(91, 141, 239, 0.12);
-  --warning:        #d4a03c;
-  --warning-dim:    rgba(212, 160, 60, 0.12);
-  --purple:         #a78bfa;
-  --purple-dim:     rgba(167, 139, 250, 0.12);
+  --success: #5cb77a;
+  --success-dim: rgba(92, 183, 122, 0.12);
+  --error: #d46464;
+  --error-dim: rgba(212, 100, 100, 0.12);
+  --info: #5b8def;
+  --info-dim: rgba(91, 141, 239, 0.12);
+  --warning: #d4a03c;
+  --warning-dim: rgba(212, 160, 60, 0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167, 139, 250, 0.12);
 
   /* Typography */
-  --font-sans:      'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-mono:      'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
 
   /* Spacing */
   --space-xs: 4px;
@@ -62,16 +62,18 @@
   --radius-xl: 20px;
 
   /* Shadows */
-  --shadow-sm:  0 2px 8px rgba(0,0,0,0.3);
-  --shadow-md:  0 8px 24px rgba(0,0,0,0.35);
-  --shadow-lg:  0 16px 48px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 20px var(--accent-glow);
 
   color-scheme: dark;
 }
 
 /* ── Reset ─────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -90,7 +92,7 @@ body {
 
 /* Subtle grain overlay */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.015'/%3E%3C/svg%3E");
@@ -100,26 +102,37 @@ body::before {
 
 /* Top ambient glow */
 body::after {
-  content: '';
+  content: "";
   position: fixed;
   top: -200px;
   left: 50%;
   transform: translateX(-50%);
   width: 800px;
   height: 500px;
-  background: radial-gradient(ellipse, rgba(224, 160, 64, 0.04) 0%, transparent 70%);
+  background: radial-gradient(
+    ellipse,
+    rgba(224, 160, 64, 0.04) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 0;
 }
 
 /* ── Scrollbar ─────────────────────────────────────── */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
 ::-webkit-scrollbar-thumb {
   background: var(--border-default);
   border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
 
 /* Firefox */
 * {
@@ -311,7 +324,9 @@ textarea {
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   font-size: 0.85rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   width: 100%;
 }
 
@@ -349,7 +364,9 @@ textarea {
   font-weight: 500;
   font-size: 0.82rem;
   color: var(--text-muted);
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
   font-family: var(--font-sans);
   letter-spacing: 0.01em;
   background: none;
@@ -389,7 +406,9 @@ textarea {
   box-shadow: var(--shadow-md);
   opacity: 0;
   transform: translateX(20px);
-  transition: opacity 0.25s, transform 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
   pointer-events: none;
   z-index: 9999;
 }
@@ -415,7 +434,8 @@ table {
   font-size: 0.82rem;
 }
 
-th, td {
+th,
+td {
   padding: 10px 14px;
   text-align: center;
   border-bottom: 1px solid var(--border-subtle);
@@ -459,8 +479,14 @@ tr:hover {
 }
 
 @keyframes modalIn {
-  from { transform: translateY(-30px) scale(0.97); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  from {
+    transform: translateY(-30px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .modal-header {
@@ -482,8 +508,14 @@ tr:hover {
 }
 
 /* ── Utility ───────────────────────────────────────── */
-.win { color: var(--success); font-weight: 600; }
-.lose { color: var(--error); font-weight: 600; }
+.win {
+  color: var(--success);
+  font-weight: 600;
+}
+.lose {
+  color: var(--error);
+  font-weight: 600;
+}
 
 /* ── Responsive ────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -492,5 +524,7 @@ tr:hover {
     --space-xl: 24px;
   }
 
-  h1 { font-size: 1.25rem; }
+  h1 {
+    font-size: 1.25rem;
+  }
 }

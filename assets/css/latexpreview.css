@@ -2,45 +2,52 @@
    LaTeX Editor — Warm Industrial Dark Theme
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 /* ----- Design Tokens ----- */
 :root {
-  --bg-app:       #0a0a0c;
-  --bg-surface:   #14141a;
-  --bg-elevated:  #1f1f26;
-  --bg-input:     #0f0f14;
+  --bg-app: #0a0a0c;
+  --bg-surface: #14141a;
+  --bg-elevated: #1f1f26;
+  --bg-input: #0f0f14;
 
-  --border-dim:   #2a2a32;
+  --border-dim: #2a2a32;
   --border-focus: #c48a2a;
 
-  --text-primary:   #ede9e3;
+  --text-primary: #ede9e3;
   --text-secondary: #9a9590;
-  --text-muted:     #5c5955;
+  --text-muted: #5c5955;
 
-  --accent:       #e0a040;
-  --accent-dim:   rgba(224, 160, 64, .10);
-  --accent-glow:  rgba(224, 160, 64, .18);
+  --accent: #e0a040;
+  --accent-dim: rgba(224, 160, 64, 0.1);
+  --accent-glow: rgba(224, 160, 64, 0.18);
 
-  --red:          #d46464;
-  --green:        #5cb77a;
-  --amber:        #d4a03c;
+  --red: #d46464;
+  --green: #5cb77a;
+  --amber: #d4a03c;
 
-  --radius-s:     6px;
-  --radius-m:     10px;
-  --radius-l:     14px;
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
 
-  --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
 
-  --shadow-card:  0 1px 3px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.25);
-  --shadow-glow:  0 0 0 3px var(--accent-dim);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 0 0 3px var(--accent-dim);
 
-  --transition:   .2s cubic-bezier(.4,0,.2,1);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ----- Reset ----- */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 html {
   font-size: 15px;
@@ -74,7 +81,10 @@ body {
   justify-content: center;
   text-decoration: none;
   z-index: 50;
-  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
   box-shadow: var(--shadow-card);
 }
 
@@ -110,14 +120,14 @@ body {
 .app-header h1 {
   font-size: 1.2rem;
   font-weight: 700;
-  letter-spacing: -.02em;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
 .header-subtitle {
-  font-size: .78rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
 }
 
 /* ----- Two-Panel Grid ----- */
@@ -145,7 +155,7 @@ body {
 }
 
 .resize-handle::after {
-  content: '';
+  content: "";
   width: 2px;
   height: 32px;
   border-radius: 1px;
@@ -198,10 +208,10 @@ body.resizing math-field {
 }
 
 .panel-header h2 {
-  font-size: .78rem;
+  font-size: 0.78rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   color: var(--text-secondary);
 }
 
@@ -221,9 +231,9 @@ body.resizing math-field {
   border: none;
   border-radius: 4px;
   color: var(--text-secondary);
-  font-size: .74rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: .03em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   cursor: pointer;
   transition: all var(--transition);
@@ -237,7 +247,7 @@ body.resizing math-field {
 .toggle-tab.active {
   background: var(--accent);
   color: #0a0a0c;
-  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* ----- View Content Toggle ----- */
@@ -271,7 +281,9 @@ math-field {
   border-radius: var(--radius-m);
   padding: 14px 16px;
   min-height: 80px;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
   --caret-color: var(--accent);
   --selection-background-color: var(--accent-dim);
   --smart-fence-color: var(--accent);
@@ -300,7 +312,7 @@ math-field:focus-within {
   padding: 16px 32px;
   overflow: auto;
   font-family: var(--font-mono);
-  font-size: .87rem;
+  font-size: 0.87rem;
   line-height: 1.65;
   color: var(--accent);
   white-space: pre-wrap;
@@ -312,12 +324,24 @@ math-field:focus-within {
 }
 
 /* Syntax highlight classes */
-.code-block .hl-cmd  { color: #a78bfa; }
-.code-block .hl-brace { color: #e0a040; }
-.code-block .hl-num  { color: #d4a03c; }
-.code-block .hl-sup  { color: #5cb77a; }
-.code-block .hl-sub  { color: #5cb77a; }
-.code-block .hl-text { color: var(--text-primary); }
+.code-block .hl-cmd {
+  color: #a78bfa;
+}
+.code-block .hl-brace {
+  color: #e0a040;
+}
+.code-block .hl-num {
+  color: #d4a03c;
+}
+.code-block .hl-sup {
+  color: #5cb77a;
+}
+.code-block .hl-sub {
+  color: #5cb77a;
+}
+.code-block .hl-text {
+  color: var(--text-primary);
+}
 
 /* Copy button */
 .btn-icon {
@@ -330,7 +354,7 @@ math-field:focus-within {
   color: var(--text-secondary);
   padding: 4px 10px;
   cursor: pointer;
-  font-size: .74rem;
+  font-size: 0.74rem;
   font-weight: 500;
   transition: all var(--transition);
 }
@@ -368,7 +392,9 @@ math-field:focus-within {
   width: 100%;
   overflow: visible;
   padding: 12px 8px;
-  transition: color var(--transition), font-size var(--transition);
+  transition:
+    color var(--transition),
+    font-size var(--transition);
 }
 
 #preview .katex-display {
@@ -386,7 +412,7 @@ math-field:focus-within {
 #preview .katex-error {
   color: var(--red);
   font-family: var(--font-mono);
-  font-size: .82rem;
+  font-size: 0.82rem;
 }
 
 /* ----- Export Footer ----- */
@@ -422,10 +448,10 @@ math-field:focus-within {
 }
 
 .option-group label {
-  font-size: .73rem;
+  font-size: 0.73rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   color: var(--text-secondary);
   white-space: nowrap;
 }
@@ -466,7 +492,7 @@ math-field:focus-within {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  font-size: .7rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
   user-select: none;
 }
@@ -520,7 +546,9 @@ math-field:focus-within {
   border: 2px solid var(--bg-app);
   box-shadow: 0 0 0 2px var(--accent-dim);
   cursor: pointer;
-  transition: box-shadow var(--transition), transform var(--transition);
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition);
 }
 
 .size-slider::-webkit-slider-thumb:hover {
@@ -561,7 +589,7 @@ math-field:focus-within {
   color: var(--text-primary);
   border: 1px solid var(--border-dim);
   border-radius: var(--radius-s);
-  font-size: .82rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
@@ -575,11 +603,11 @@ math-field:focus-within {
 }
 
 .btn-export:active {
-  transform: scale(.97);
+  transform: scale(0.97);
 }
 
 .btn-export:disabled {
-  opacity: .45;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -589,22 +617,24 @@ math-field:focus-within {
 }
 
 .btn-export.loading::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 14px;
   height: 14px;
   border: 2px solid var(--accent);
   border-top-color: transparent;
   border-radius: 50%;
-  animation: spin .6s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .export-status {
-  font-size: .75rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -619,12 +649,14 @@ math-field:focus-within {
   border: 1px solid var(--border-dim);
   border-radius: var(--radius-m);
   padding: 10px 22px;
-  font-size: .82rem;
+  font-size: 0.82rem;
   font-weight: 500;
   box-shadow: var(--shadow-card);
   opacity: 0;
   pointer-events: none;
-  transition: opacity .3s, transform .3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
   z-index: 1000;
 }
 
@@ -657,7 +689,9 @@ math-field:focus-within {
   scrollbar-width: none;
 }
 
-.palette-tabs::-webkit-scrollbar { display: none; }
+.palette-tabs::-webkit-scrollbar {
+  display: none;
+}
 
 .palette-tab {
   flex-shrink: 0;
@@ -666,9 +700,9 @@ math-field:focus-within {
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--text-secondary);
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: .03em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   cursor: pointer;
   transition: all var(--transition);
@@ -717,7 +751,7 @@ math-field:focus-within {
 }
 
 .sym-btn:active {
-  transform: scale(.92);
+  transform: scale(0.92);
 }
 
 .sym-btn .katex {
@@ -787,7 +821,9 @@ math-field:focus-within {
 }
 
 @media (max-width: 600px) {
-  html { font-size: 14px; }
+  html {
+    font-size: 14px;
+  }
 
   .app-header {
     padding: 12px 16px;
@@ -813,6 +849,6 @@ math-field:focus-within {
 
   .btn-export {
     padding: 7px 14px;
-    font-size: .78rem;
+    font-size: 0.78rem;
   }
 }

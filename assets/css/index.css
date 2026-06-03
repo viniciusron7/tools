@@ -65,7 +65,7 @@ h1 .accent {
 }
 
 .card::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
@@ -102,15 +102,50 @@ h1 .accent {
   flex-shrink: 0;
 }
 
-.icon-text   { background: var(--info-dim); color: var(--info); border: 1px solid rgba(91, 141, 239, 0.2); }
-.icon-json   { background: var(--success-dim); color: var(--success); border: 1px solid rgba(92, 183, 122, 0.2); }
-.icon-api    { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent-border); }
-.icon-monty  { background: var(--purple-dim); border: 1px solid rgba(167, 139, 250, 0.2); }
-.icon-latex  { background: var(--error-dim); color: var(--error); border: 1px solid rgba(212, 100, 100, 0.2); overflow: hidden; }
-.icon-latex .katex { font-size: 1.1rem; color: inherit; }
-.icon-escape { background: var(--info-dim); color: var(--info); border: 1px solid rgba(91, 141, 239, 0.2); }
-.icon-b64    { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(212, 160, 60, 0.2); }
-.icon-regex  { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167, 139, 250, 0.2); }
+.icon-text {
+  background: var(--info-dim);
+  color: var(--info);
+  border: 1px solid rgba(91, 141, 239, 0.2);
+}
+.icon-json {
+  background: var(--success-dim);
+  color: var(--success);
+  border: 1px solid rgba(92, 183, 122, 0.2);
+}
+.icon-api {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+.icon-monty {
+  background: var(--purple-dim);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+.icon-latex {
+  background: var(--error-dim);
+  color: var(--error);
+  border: 1px solid rgba(212, 100, 100, 0.2);
+  overflow: hidden;
+}
+.icon-latex .katex {
+  font-size: 1.1rem;
+  color: inherit;
+}
+.icon-escape {
+  background: var(--info-dim);
+  color: var(--info);
+  border: 1px solid rgba(91, 141, 239, 0.2);
+}
+.icon-b64 {
+  background: var(--warning-dim);
+  color: var(--warning);
+  border: 1px solid rgba(212, 160, 60, 0.2);
+}
+.icon-regex {
+  background: var(--purple-dim);
+  color: var(--purple);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
 
 .card-body {
   flex: 1;

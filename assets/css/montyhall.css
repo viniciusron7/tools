@@ -34,7 +34,9 @@
   font-weight: 500;
   font-size: 0.82rem;
   color: var(--text-muted);
-  transition: color .2s ease, border-color .2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
   background: none;
   border-radius: 0;
   box-shadow: none;
@@ -105,7 +107,7 @@
   color: var(--text-primary);
   font-size: 0.82rem;
   cursor: pointer;
-  transition: border-color .2s ease;
+  transition: border-color 0.2s ease;
   font-family: var(--font-sans);
 }
 
@@ -199,7 +201,11 @@
 }
 
 .door-front {
-  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-base) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--bg-elevated) 0%,
+    var(--bg-base) 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -208,12 +214,14 @@
   color: var(--text-muted);
   border: 1px solid var(--border-subtle);
   position: relative;
-  transition: border-color .25s ease, box-shadow .25s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 /* Door handle */
 .door-front::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 14px;
   height: 28px;
@@ -225,7 +233,7 @@
 }
 
 .door-front::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 8px;
   height: 8px;
@@ -246,7 +254,7 @@
 
 .door-panels::before,
 .door-panels::after {
-  content: '';
+  content: "";
   position: absolute;
   background: var(--border-subtle);
   width: 100%;
@@ -254,8 +262,12 @@
   left: 0;
 }
 
-.door-panels::before { top: 33%; }
-.door-panels::after  { top: 66%; }
+.door-panels::before {
+  top: 33%;
+}
+.door-panels::after {
+  top: 66%;
+}
 
 .door-back {
   background: var(--bg-base);
@@ -286,8 +298,14 @@
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Controls */
@@ -305,7 +323,7 @@ button {
   font-weight: 600;
   cursor: pointer;
   font-size: 0.82rem;
-  transition: filter .2s ease;
+  transition: filter 0.2s ease;
   background: var(--bg-elevated);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
@@ -370,7 +388,9 @@ button:disabled {
   border-radius: var(--radius-md);
   text-align: center;
   border: 1px solid var(--border-subtle);
-  transition: border-color .25s ease, transform .2s ease;
+  transition:
+    border-color 0.25s ease,
+    transform 0.2s ease;
 }
 
 .summary-item:hover {
@@ -423,7 +443,8 @@ table {
   font-size: 0.82rem;
 }
 
-th, td {
+th,
+td {
   padding: 10px 14px;
   text-align: center;
   border-bottom: 1px solid var(--border-subtle);
@@ -445,7 +466,9 @@ tr:hover {
 /* Selected door */
 .door-container.selected .door-front {
   border-color: var(--accent-border);
-  box-shadow: 0 0 20px var(--accent-glow), inset 0 0 0 1px var(--accent-glow);
+  box-shadow:
+    0 0 20px var(--accent-glow),
+    inset 0 0 0 1px var(--accent-glow);
 }
 
 .progress-text {
@@ -487,7 +510,8 @@ tr:hover {
     height: 280px;
   }
 
-  th, td {
+  th,
+  td {
     padding: 8px 6px;
     font-size: 0.75rem;
   }

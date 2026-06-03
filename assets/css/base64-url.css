@@ -212,7 +212,9 @@ button:hover {
   box-shadow: var(--shadow-md);
   opacity: 0;
   transform: translateX(20px);
-  transition: opacity 0.25s, transform 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
   pointer-events: none;
   z-index: 1000;
 }

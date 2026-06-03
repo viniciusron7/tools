@@ -80,8 +80,14 @@ body {
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .json-element.selected {
@@ -183,7 +189,9 @@ body {
   opacity: 0;
   max-height: 0;
   overflow: hidden;
-  transition: opacity 0.2s ease, max-height 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    max-height 0.2s ease;
 }
 
 .element-header:hover .element-controls {
@@ -289,9 +297,15 @@ body {
 }
 
 @keyframes pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(92, 183, 122, 0.3); }
-  70%  { box-shadow: 0 0 0 10px rgba(92, 183, 122, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(92, 183, 122, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(92, 183, 122, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(92, 183, 122, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(92, 183, 122, 0);
+  }
 }
 
 .error {
@@ -405,12 +419,24 @@ body {
 }
 
 /* Syntax highlighting */
-.json-key         { color: #e8a23e; }
-.json-string      { color: #7ec88b; }
-.json-number      { color: #d4a03c; }
-.json-boolean     { color: #5b8def; }
-.json-null        { color: #a78bfa; }
-.json-punctuation { color: var(--text-muted); }
+.json-key {
+  color: #e8a23e;
+}
+.json-string {
+  color: #7ec88b;
+}
+.json-number {
+  color: #d4a03c;
+}
+.json-boolean {
+  color: #5b8def;
+}
+.json-null {
+  color: #a78bfa;
+}
+.json-punctuation {
+  color: var(--text-muted);
+}
 
 /* Responsive */
 @media (max-width: 768px) {
