@@ -15,7 +15,7 @@ function initChart() {
       labels: [],
       datasets: [
         {
-          label: "Taxa de Vitoria",
+          label: "Taxa de Vitória",
           data: [],
           borderColor: "#3b82f6",
           backgroundColor: "rgba(59, 130, 246, 0.08)",
@@ -77,7 +77,7 @@ function initChart() {
         y: {
           title: {
             display: true,
-            text: "Vitoria (%)",
+            text: "Vitória (%)",
             color: "#64748b",
             padding: { bottom: 10 },
           },
@@ -227,7 +227,7 @@ function makeDecision(switched) {
     currentGame.won = currentGame.finalDoor === currentGame.carDoor;
 
     if (currentGame.won) {
-      message.textContent = "Vitoria! Voce acertou o carro.";
+      message.textContent = "Vitória! Você acertou o carro.";
     } else {
       message.textContent = "Derrota. Era um bode.";
     }
@@ -274,7 +274,7 @@ function runNextSimulation() {
     simulateBtn.disabled = false;
     progressBar.classList.remove("active");
     document.getElementById("progressText").textContent = "";
-    simMessage.textContent = "Simulacao finalizada";
+    simMessage.textContent = "Simulação finalizada";
     return;
   }
 
@@ -339,7 +339,7 @@ function runNextSimulation() {
   simGame.won = simGame.finalDoor === simGame.carDoor;
 
   if (simGame.won) {
-    simMessage.textContent = `Rodada ${currentSimulation} - Vitoria`;
+    simMessage.textContent = `Rodada ${currentSimulation} - Vitória`;
   } else {
     simMessage.textContent = `Rodada ${currentSimulation} - Derrota`;
   }
@@ -392,7 +392,7 @@ function updateStats() {
         <td>${lastGame.switched ? "Sim" : "Não"}</td>
         <td>${lastGame.finalDoor}</td>
         <td>${lastGame.carDoor}</td>
-        <td class="${lastGame.won ? "win" : "lose"}">${lastGame.won ? "Vitoria" : "Derrota"}</td>
+        <td class="${lastGame.won ? "win" : "lose"}">${lastGame.won ? "Vitória" : "Derrota"}</td>
     `;
   tbody.insertBefore(row, tbody.firstChild);
 
