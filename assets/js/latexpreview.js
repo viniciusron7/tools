@@ -57,13 +57,16 @@ function applyPreviewStyles() {
   bgColorInput.style.opacity = bgTransparent ? "0.4" : "1";
 }
 
-// ----- KaTeX Live Preview -----
-// MathLive may output commands KaTeX doesn't support; normalise them here.
-function normalizeForKaTeX(latex) {
+// ----- LaTeX Normalisation -----
+// MathLive may output commands that neither KaTeX nor MathJax understand;
+// normalise them to standard LaTeX so the preview AND the export pipeline
+// (which feeds MathJax) accept the same input.
+function normalizeLatex(latex) {
   let out = latex;
   // \displaylines{...} → \begin{gathered}...\end{gathered}
+  // Non-greedy + global so multiple blocks and trailing "}" are handled.
   out = out.replace(
-    /\\displaylines\s*\{([\s\S]*)\}/,
+    /\\displaylines\s*\{([\s\S]*?)\}/g,
     "\\begin{gathered}$1\\end{gathered}",
   );
   // \placeholder{} → □  (KaTeX doesn't know \placeholder)
@@ -83,7 +86,7 @@ function updatePreview(latex) {
       '<span style="color:var(--text-muted);font-style:italic">Digite uma equação no editor…</span>';
     return;
   }
-  const normalized = normalizeForKaTeX(latex);
+  const normalized = normalizeLatex(latex);
   try {
     katex.render(normalized, previewEl, {
       throwOnError: false,
@@ -111,7 +114,14 @@ function updateCodeDisplay(latex) {
 }
 
 function highlightLatex(raw) {
-  const escaped = escapeHtml(raw);
+  // Escape only &, <, > here. The result is assigned as the text content of a
+  // <code> element, so quotes/apostrophes don't need escaping — and escaping
+  // them as numeric entities (e.g. ' → &#039;) would be mangled by the digit
+  // highlighter below, corrupting primes like f'(x).
+  const escaped = raw
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
   return escaped
     .replace(/(\\[a-zA-Z]+)/g, '<span class="hl-cmd">$1</span>')
     .replace(/([{}])/g, '<span class="hl-brace">$1</span>')
@@ -219,6 +229,15 @@ async function loadMathJax() {
       inlineMath: [["$", "$"]],
       displayMath: [["$$", "$$"]],
       packages: { "[+]": ["ams", "newcommand", "configmacros"] },
+      // Mirror the macros defined for the KaTeX preview so equations using
+      // \R \N \Z \C \Q export identically to how they render on screen.
+      macros: {
+        R: "\\mathbb{R}",
+        N: "\\mathbb{N}",
+        Z: "\\mathbb{Z}",
+        C: "\\mathbb{C}",
+        Q: "\\mathbb{Q}",
+      },
     },
     svg: { fontCache: "local", scale: 1 },
     startup: { typeset: false },
@@ -241,7 +260,9 @@ async function loadMathJax() {
 
 async function latexToSVG(latex) {
   await loadMathJax();
-  const wrapper = MathJax.tex2svg(latex, { display: true });
+  // Normalise MathLive-specific commands (e.g. \placeholder from empty slots)
+  // so MathJax accepts exactly what the KaTeX preview already renders.
+  const wrapper = MathJax.tex2svg(normalizeLatex(latex), { display: true });
   const original = wrapper.querySelector("svg");
 
   // Clone so we never mutate MathJax's cached SVG node
@@ -333,6 +354,26 @@ async function exportSVG() {
   setExportLoading(exportSvgBtn, true);
   try {
     const svg = await latexToSVG(latex);
+
+    // Embed the chosen background as a <rect> covering the viewBox, unless the
+    // user wants a transparent background. PNG/PDF paint this onto the canvas
+    // instead; the vector SVG needs the rect baked in to honour the option.
+    if (!bgTransparentCb.checked) {
+      const viewBox = (svg.getAttribute("viewBox") || "").split(/\s+/);
+      if (viewBox.length === 4) {
+        const rect = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "rect",
+        );
+        rect.setAttribute("x", viewBox[0]);
+        rect.setAttribute("y", viewBox[1]);
+        rect.setAttribute("width", viewBox[2]);
+        rect.setAttribute("height", viewBox[3]);
+        rect.setAttribute("fill", bgColorInput.value);
+        svg.insertBefore(rect, svg.firstChild);
+      }
+    }
+
     const serializer = new XMLSerializer();
     const svgString =
       '<?xml version="1.0" encoding="UTF-8"?>\n' +
@@ -442,7 +483,12 @@ async function exportPDF() {
 function setExportLoading(btn, loading) {
   btn.disabled = loading;
   btn.classList.toggle("loading", loading);
-  exportStatus.textContent = loading ? "Carregando MathJax…" : "";
+  if (!loading) {
+    exportStatus.textContent = "";
+  } else {
+    // MathJax only loads once; afterwards the wait is just rasterisation.
+    exportStatus.textContent = mathjaxReady ? "Gerando…" : "Carregando MathJax…";
+  }
 }
 
 // ============================================================
