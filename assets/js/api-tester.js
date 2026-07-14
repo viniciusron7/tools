@@ -224,15 +224,11 @@ function importHeaders() {
           const container = document.getElementById("requestHeaders");
           container.innerHTML = "";
 
+          // Use appendHeaderRow (sets .value via the DOM) so header values
+          // containing quotes or HTML are handled safely instead of being
+          // injected into innerHTML.
           Object.entries(headers).forEach(([key, value]) => {
-            const item = document.createElement("div");
-            item.className = "list-item";
-            item.innerHTML = `
-                            <input type="text" placeholder="Header" class="header-key" value="${key}">
-                            <input type="text" placeholder="Valor" class="header-value" value="${value}">
-                            <button class="remove-btn" onclick="removeItem(this)">X</button>
-                        `;
-            container.appendChild(item);
+            appendHeaderRow(String(key), String(value));
           });
         } catch (error) {
           alert("Erro ao importar headers: " + error.message);
@@ -557,7 +553,10 @@ async function handleResponse(response, responseTime, requestData) {
 
   try {
     const text = await response.text();
-    responseSize.textContent = formatFileSize(text.length);
+    // Report the actual UTF-8 byte size, not the character count
+    responseSize.textContent = formatFileSize(
+      new TextEncoder().encode(text).length,
+    );
     responseBody.classList.remove("empty-state");
 
     try {
@@ -721,14 +720,34 @@ function clearAllFields() {
 function saveRequest() {
   const requestData = buildRequestData();
   const name = prompt("Nome para esta requisição:");
-  if (name) {
-    const saved = {
-      id: Date.now(),
-      name,
-      ...requestData,
-    };
-    alert("Requisição salva com sucesso!");
-  }
+  if (!name) return;
+
+  // FormData bodies cannot be serialized to JSON; note that explicitly.
+  const serializableBody =
+    requestData.options.body instanceof FormData
+      ? "[multipart/form-data — arquivos não exportados]"
+      : requestData.options.body;
+
+  const saved = {
+    name,
+    savedAt: new Date().toISOString(),
+    method: requestData.options.method,
+    url: requestData.url,
+    headers: requestData.options.headers,
+    body: serializableBody,
+  };
+
+  const blob = new Blob([JSON.stringify(saved, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name.replace(/[^a-z0-9_-]+/gi, "_")}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // cURL export
