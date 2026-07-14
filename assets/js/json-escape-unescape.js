@@ -25,16 +25,19 @@ function escapeJson() {
   }
 
   try {
+    // Match JSON string-escaping semantics (like JSON.stringify): escape the
+    // backslash first, then the named escapes. Note: forward slash "/" is NOT
+    // escaped — it is valid unescaped in JSON and escaping it corrupts URLs.
     let escaped = text
       .replace(/\\/g, "\\\\")
       .replace(/"/g, '\\"')
-      .replace(/\//g, "\\/")
       .replace(/\n/g, "\\n")
       .replace(/\r/g, "\\r")
       .replace(/\t/g, "\\t")
-      .replace(/\f/g, "\\f");
+      .replace(/\f/g, "\\f")
+      .replace(/[\b]/g, "\\b");
 
-    // Escape remaining control characters
+    // Escape remaining control characters as \uXXXX
     escaped = escaped.replace(/[\x00-\x1F\x7F-\x9F]/g, (ch) => {
       return (
         "\\u" + ("0000" + ch.charCodeAt(0).toString(16).toUpperCase()).slice(-4)
@@ -59,19 +62,68 @@ function unescapeJson() {
   }
 
   try {
-    let unescaped = text
-      .replace(/\\n/g, "\n")
-      .replace(/\\r/g, "\r")
-      .replace(/\\t/g, "\t")
-      .replace(/\\f/g, "\f")
-      .replace(/\\"/g, '"')
-      .replace(/\\\//g, "/")
-      .replace(/\\\\/g, "\\");
+    // Single-pass scanner. A chained sequence of .replace() calls is buggy:
+    // e.g. "\\n" (escaped backslash + the letter n) would wrongly turn into a
+    // backslash followed by a newline. Scanning left-to-right consumes each
+    // escape exactly once and avoids that ambiguity.
+    let unescaped = "";
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch !== "\\") {
+        unescaped += ch;
+        continue;
+      }
 
-    // Unescape Unicode sequences
-    unescaped = unescaped.replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => {
-      return String.fromCharCode(parseInt(hex, 16));
-    });
+      const next = text[i + 1];
+      switch (next) {
+        case "n":
+          unescaped += "\n";
+          i++;
+          break;
+        case "r":
+          unescaped += "\r";
+          i++;
+          break;
+        case "t":
+          unescaped += "\t";
+          i++;
+          break;
+        case "f":
+          unescaped += "\f";
+          i++;
+          break;
+        case "b":
+          unescaped += "\b";
+          i++;
+          break;
+        case '"':
+          unescaped += '"';
+          i++;
+          break;
+        case "/":
+          unescaped += "/";
+          i++;
+          break;
+        case "\\":
+          unescaped += "\\";
+          i++;
+          break;
+        case "u": {
+          const hex = text.slice(i + 2, i + 6);
+          if (/^[0-9A-Fa-f]{4}$/.test(hex)) {
+            unescaped += String.fromCharCode(parseInt(hex, 16));
+            i += 5;
+          } else {
+            // Malformed \u sequence — keep the backslash literally
+            unescaped += ch;
+          }
+          break;
+        }
+        default:
+          // Lone or unknown escape — preserve the backslash as-is
+          unescaped += ch;
+      }
+    }
 
     outputEl.value = unescaped;
     outputCount.textContent = unescaped.length + " caracteres";
