@@ -8,6 +8,7 @@ const PNG_SCALE = 4;
 
 // ----- DOM References -----
 const mathEditor = document.getElementById("math-editor");
+const latexSource = document.getElementById("latex-source");
 const latexCode = document.querySelector("#latex-code code");
 const previewEl = document.getElementById("preview");
 const copyBtn = document.getElementById("copy-btn");
@@ -17,6 +18,10 @@ const exportPngBtn = document.getElementById("export-png");
 const exportPdfBtn = document.getElementById("export-pdf");
 const exportStatus = document.getElementById("export-status");
 const toastEl = document.getElementById("toast");
+
+let currentLatex = DEFAULT_LATEX;
+let isSyncingMathEditor = false;
+let sourceNeedsVisualSync = false;
 
 // ----- Export Options Controls -----
 const textColorInput = document.getElementById("text-color");
@@ -213,7 +218,32 @@ async function copyImagePNG() {
 
 // ----- Get Current LaTeX -----
 function getLatex() {
-  return mathEditor.value || "";
+  return currentLatex;
+}
+
+// ----- Shared equation state (Visual ↔ Source) -----
+function setEquationLatex(latex, source = "initial") {
+  currentLatex = latex ?? "";
+  sourceNeedsVisualSync = source === "code";
+
+  if (source !== "code" && latexSource.value !== currentLatex) {
+    latexSource.value = currentLatex;
+  }
+
+  // Keep code-mode input byte-for-byte as typed. MathLive is hydrated only
+  // when visual mode opens, otherwise parsing incomplete source on every
+  // keystroke can normalize spacing/comments and disturb its undo history.
+  if (source === "initial" && mathEditor.value !== currentLatex) {
+    isSyncingMathEditor = true;
+    try {
+      mathEditor.value = currentLatex;
+    } finally {
+      isSyncingMathEditor = false;
+    }
+  }
+
+  updateCodeDisplay(currentLatex);
+  updatePreview(currentLatex);
 }
 
 // ============================================================
@@ -1068,6 +1098,103 @@ function configureMathField() {
 }
 
 // ============================================================
+// Editor Mode Toggle — Visual / Editable LaTeX Source
+// ============================================================
+function initEditorModeToggle() {
+  const tabs = Array.from(document.querySelectorAll(".editor-mode-tab"));
+  const views = Array.from(document.querySelectorAll(".editor-mode-view"));
+
+  function setEditorMode(mode, { focusEditor = false } = {}) {
+    if (!tabs.some((tab) => tab.dataset.editorMode === mode)) return;
+
+    tabs.forEach((tab) => {
+      const isActive = tab.dataset.editorMode === mode;
+      tab.classList.toggle("active", isActive);
+      tab.setAttribute("aria-selected", String(isActive));
+      tab.tabIndex = isActive ? 0 : -1;
+    });
+
+    views.forEach((view) => {
+      const isActive = view.dataset.editorMode === mode;
+      view.classList.toggle("active", isActive);
+      view.hidden = !isActive;
+    });
+
+    if (mode === "visual" && sourceNeedsVisualSync) {
+      isSyncingMathEditor = true;
+      try {
+        mathEditor.value = currentLatex;
+      } finally {
+        isSyncingMathEditor = false;
+        sourceNeedsVisualSync = false;
+      }
+    }
+
+    if (focusEditor) {
+      requestAnimationFrame(() => {
+        if (mode === "visual") {
+          mathEditor.focus();
+        } else {
+          latexSource.focus();
+        }
+      });
+    }
+  }
+
+  tabs.forEach((tab, tabIndex) => {
+    tab.addEventListener("click", () => {
+      setEditorMode(tab.dataset.editorMode, { focusEditor: true });
+    });
+
+    tab.addEventListener("keydown", (event) => {
+      let nextIndex = null;
+
+      if (event.key === "ArrowRight") {
+        nextIndex = (tabIndex + 1) % tabs.length;
+      } else if (event.key === "ArrowLeft") {
+        nextIndex = (tabIndex - 1 + tabs.length) % tabs.length;
+      } else if (event.key === "Home") {
+        nextIndex = 0;
+      } else if (event.key === "End") {
+        nextIndex = tabs.length - 1;
+      }
+
+      if (nextIndex === null) return;
+
+      event.preventDefault();
+      const nextTab = tabs[nextIndex];
+      setEditorMode(nextTab.dataset.editorMode);
+      nextTab.focus();
+    });
+  });
+
+  latexSource.addEventListener("input", () => {
+    setEquationLatex(latexSource.value, "code");
+  });
+
+  latexSource.addEventListener("keydown", (event) => {
+    if (event.key === "Tab" && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      latexSource.setRangeText(
+        "  ",
+        latexSource.selectionStart,
+        latexSource.selectionEnd,
+        "end",
+      );
+      setEquationLatex(latexSource.value, "code");
+      return;
+    }
+
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      setEditorMode("visual", { focusEditor: true });
+    }
+  });
+
+  setEditorMode("visual");
+}
+
+// ============================================================
 // Initialization
 // ============================================================
 function init() {
@@ -1084,17 +1211,17 @@ function init() {
     // Init view toggle (code / preview)
     initViewToggle();
 
-    // Live sync: MathLive → Code + Preview
+    // Init editor toggle (visual / editable LaTeX source)
+    initEditorModeToggle();
+
+    // Live sync: MathLive → shared source + Code + Preview
     mathEditor.addEventListener("input", () => {
-      const latex = getLatex();
-      updateCodeDisplay(latex);
-      updatePreview(latex);
+      if (isSyncingMathEditor) return;
+      setEquationLatex(mathEditor.value || "", "visual");
     });
 
     // Initial render with default equation
-    const initialLatex = getLatex();
-    updateCodeDisplay(initialLatex);
-    updatePreview(initialLatex);
+    setEquationLatex(mathEditor.value || DEFAULT_LATEX);
 
     // Apply initial preview styles
     applyPreviewStyles();

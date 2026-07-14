@@ -46,32 +46,139 @@
         <h1>LaTeX Editor</h1>
       </div>
       <p class="header-subtitle">
-        Editor visual de equações matemáticas — 100% offline
+        Edite visualmente ou escreva LaTeX — 100% offline
       </p>
     </header>
 
-    <!-- Main 3-panel layout -->
+    <!-- Main two-panel layout -->
     <main id="app" class="panels">
-      <!-- Panel 1: Editor Visual (MathLive) + Symbol Palette -->
+      <!-- Panel 1: Visual / source editor -->
       <section
         id="editor-panel"
         class="panel"
-        aria-label="Editor visual de equações"
+        aria-label="Editor de equações"
       >
-        <div class="panel-header">
-          <h2>Editor Visual</h2>
+        <div class="panel-header editor-panel-header">
+          <h2>Editor</h2>
+          <div
+            class="editor-mode-toggle"
+            role="tablist"
+            aria-label="Modo de edição"
+          >
+            <button
+              id="visual-editor-tab"
+              class="editor-mode-tab active"
+              type="button"
+              data-editor-mode="visual"
+              role="tab"
+              aria-selected="true"
+              aria-controls="visual-editor-view"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="15"
+                height="15"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 7h6l3 10L17 7h3" />
+              </svg>
+              Visual
+            </button>
+            <button
+              id="code-editor-tab"
+              class="editor-mode-tab"
+              type="button"
+              data-editor-mode="code"
+              role="tab"
+              aria-selected="false"
+              aria-controls="code-editor-view"
+              tabindex="-1"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="15"
+                height="15"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="8 9 5 12 8 15" />
+                <polyline points="16 9 19 12 16 15" />
+                <line x1="14" y1="5" x2="10" y2="19" />
+              </svg>
+              Código LaTeX
+            </button>
+          </div>
         </div>
         <div class="panel-body editor-body">
-          <math-field id="math-editor"></math-field>
-
-          <!-- Symbol Palette -->
           <div
-            id="symbol-palette"
-            class="symbol-palette"
-            aria-label="Paleta de símbolos"
+            id="visual-editor-view"
+            class="editor-mode-view visual-editor-view active"
+            data-editor-mode="visual"
+            role="tabpanel"
+            aria-labelledby="visual-editor-tab"
           >
-            <nav class="palette-tabs" role="tablist"></nav>
-            <div class="palette-grid" role="tabpanel"></div>
+            <math-field
+              id="math-editor"
+              aria-label="Editor visual de equações"
+            ></math-field>
+
+            <!-- Symbol Palette -->
+            <div
+              id="symbol-palette"
+              class="symbol-palette"
+              aria-label="Paleta de símbolos"
+            >
+              <nav class="palette-tabs" role="tablist"></nav>
+              <div class="palette-grid" role="tabpanel"></div>
+            </div>
+          </div>
+
+          <div
+            id="code-editor-view"
+            class="editor-mode-view code-editor-view"
+            data-editor-mode="code"
+            role="tabpanel"
+            aria-labelledby="code-editor-tab"
+            hidden
+          >
+            <div class="source-editor-shell">
+              <div class="source-editor-meta" aria-hidden="true">
+                <span>Fonte LaTeX</span>
+                <span class="live-indicator">
+                  <span class="live-indicator-dot"></span>
+                  Preview em tempo real
+                </span>
+              </div>
+              <textarea
+                id="latex-source"
+                class="latex-source"
+                aria-label="Código LaTeX da equação"
+                aria-describedby="source-editor-hint"
+                placeholder="\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}"
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                wrap="off"
+              ></textarea>
+              <p id="source-editor-hint" class="source-editor-hint">
+                Digite somente a equação, sem delimitadores
+                <code>$</code> ou <code>$$</code>.
+                <span
+                  ><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> abre o modo
+                  visual.</span
+                >
+              </p>
+            </div>
           </div>
         </div>
       </section>
