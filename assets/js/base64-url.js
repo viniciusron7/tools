@@ -19,6 +19,12 @@ inputEl.addEventListener("input", () => {
   inputBytes.textContent = getByteLength(inputEl.value) + " bytes";
 });
 
+// Keep the output counters in sync if the user edits the output directly
+outputEl.addEventListener("input", () => {
+  outputCount.textContent = outputEl.value.length + " caracteres";
+  outputBytes.textContent = getByteLength(outputEl.value) + " bytes";
+});
+
 // Switch between Base64 and URL modes
 function switchMode(mode) {
   currentMode = mode;
@@ -49,9 +55,15 @@ function b64Encode(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
 
-// Base64 decode — UTF-8 safe, strips whitespace before decoding
+// Base64 decode — UTF-8 safe. Strips whitespace, accepts the URL-safe
+// alphabet (-_ instead of +/) and tolerates missing "=" padding.
 function b64Decode(str) {
-  return decodeURIComponent(escape(atob(str.replace(/\s/g, ""))));
+  let cleaned = str.replace(/\s/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  // Restore padding so atob accepts strings saved without trailing "="
+  const remainder = cleaned.length % 4;
+  if (remainder === 2) cleaned += "==";
+  else if (remainder === 3) cleaned += "=";
+  return decodeURIComponent(escape(atob(cleaned)));
 }
 
 // Encode action
