@@ -68,12 +68,10 @@ function applyPreviewStyles() {
 // (which feeds MathJax) accept the same input.
 function normalizeLatex(latex) {
   let out = latex;
-  // \displaylines{...} → \begin{gathered}...\end{gathered}
-  // Non-greedy + global so multiple blocks and trailing "}" are handled.
-  out = out.replace(
-    /\\displaylines\s*\{([\s\S]*?)\}/g,
-    "\\begin{gathered}$1\\end{gathered}",
-  );
+  // \displaylines{...} (o que o MathLive emite ao quebrar linha) não é
+  // reescrito aqui: um regex pararia na primeira "}" e partiria qualquer
+  // linha com chaves — \frac{1}{2}, x^{2}, \sqrt{2}. MathJax entende o
+  // comando nativamente e o KaTeX recebe a macro em updatePreview().
   // \placeholder{} → □  (KaTeX doesn't know \placeholder)
   out = out.replace(/\\placeholder\s*(\{[^}]*\})?/g, "\\square");
   // MathLive non-standard commands → standard LaTeX equivalents
@@ -101,6 +99,9 @@ function updatePreview(latex) {
       trust: false,
       strict: false,
       macros: {
+        // Quebra de linha do MathLive — o KaTeX não conhece \displaylines,
+        // mas expande a macro com o argumento entre chaves balanceadas.
+        "\\displaylines": "\\begin{gathered}#1\\end{gathered}",
         "\\R": "\\mathbb{R}",
         "\\N": "\\mathbb{N}",
         "\\Z": "\\mathbb{Z}",
