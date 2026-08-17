@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formatar código</title>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/formatar-codigo.css" />
+  </head>
+  <body>
+    <a href="../index.html" class="back-btn" aria-label="Voltar ao início">
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M19 12H5" />
+        <path d="M12 19l-7-7 7-7" />
+      </svg>
+    </a>
+
+    <div class="container">
+      <header class="header">
+        <h1>Formatar código</h1>
+        <p>Mescle, divida e formate HTML, CSS e JavaScript</p>
+      </header>
+
+      <div class="tabs" role="tablist">
+        <button
+          class="tab active"
+          id="tab-merge"
+          role="tab"
+          aria-selected="true"
+          onclick="switchTab('merge')"
+        >
+          Mesclar
+        </button>
+        <button
+          class="tab"
+          id="tab-split"
+          role="tab"
+          aria-selected="false"
+          onclick="switchTab('split')"
+        >
+          Dividir
+        </button>
+        <button
+          class="tab"
+          id="tab-format"
+          role="tab"
+          aria-selected="false"
+          onclick="switchTab('format')"
+        >
+          Formatar
+        </button>
+      </div>
+
+      <div class="options">
+        <span class="options-label">Saída</span>
+        <label class="opt">
+          <input type="checkbox" id="optFormat" checked />
+          Formatar estrutura
+        </label>
+        <label class="opt">
+          <input type="checkbox" id="optStrip" />
+          Remover comentários
+        </label>
+        <label class="opt">
+          Indentação
+          <select id="optIndent">
+            <option value="2" selected>2 espaços</option>
+            <option value="4">4 espaços</option>
+            <option value="tab">Tab</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- ── Mesclar ────────────────────────────────────── -->
+      <section class="pane active" id="pane-merge">
+        <div class="toolbar">
+          <label class="btn-file">
+            Carregar arquivos
+            <input
+              type="file"
+              id="mergeFiles"
+              multiple
+              accept=".html,.htm,.css,.js,.mjs,.cjs"
+              onchange="loadMergeFiles(this)"
+              hidden
+            />
+          </label>
+          <button class="btn-add" onclick="addEditor('html')">+ HTML</button>
+          <button class="btn-add" onclick="addEditor('css')">+ CSS</button>
+          <button class="btn-add" onclick="addEditor('js')">+ JS</button>
+          <span class="toolbar-gap"></span>
+          <button class="btn-primary" onclick="runMerge()">Mesclar</button>
+          <button class="btn-clear" onclick="clearEditors()">Limpar</button>
+        </div>
+
+        <div class="editors" id="editors"></div>
+
+        <p class="hint">
+          O primeiro HTML vira o documento base. CSS e JS cujo nome apareça em
+          um <code>&lt;link href&gt;</code> ou <code>&lt;script src&gt;</code>
+          são embutidos no lugar da tag; o restante entra no fim do
+          <code>&lt;head&gt;</code> e do <code>&lt;body&gt;</code>, na ordem da
+          lista.
+        </p>
+      </section>
+
+      <!-- ── Dividir ────────────────────────────────────── -->
+      <section class="pane" id="pane-split">
+        <div class="toolbar">
+          <label class="btn-file">
+            Carregar HTML
+            <input
+              type="file"
+              id="splitFile"
+              accept=".html,.htm"
+              onchange="loadSplitFile(this)"
+              hidden
+            />
+          </label>
+          <label class="opt">
+            <input type="checkbox" id="splitGranular" />
+            Um arquivo por bloco
+          </label>
+          <span class="toolbar-gap"></span>
+          <button class="btn-primary" onclick="runSplit()">Dividir</button>
+          <button
+            class="btn-clear"
+            onclick="document.getElementById('splitInput').value = ''"
+          >
+            Limpar
+          </button>
+        </div>
+
+        <textarea
+          id="splitInput"
+          class="big-input"
+          spellcheck="false"
+          placeholder="Cole aqui o HTML completo para separar em index.html + styles.css + script.js..."
+        ></textarea>
+
+        <p class="hint">
+          Desmarcado: três arquivos (<code>index.html</code>,
+          <code>styles.css</code>, <code>script.js</code>). Marcado: um arquivo
+          por bloco <code>&lt;style&gt;</code>/<code>&lt;script&gt;</code>,
+          nomeado pelo <code>id</code> quando existir. Scripts com
+          <code>src</code> e blocos que não são JS (JSON, templates) ficam onde
+          estão.
+        </p>
+      </section>
+
+      <!-- ── Formatar ───────────────────────────────────── -->
+      <section class="pane" id="pane-format">
+        <div class="toolbar">
+          <label class="opt">
+            Linguagem
+            <select id="formatLang">
+              <option value="auto" selected>Detectar</option>
+              <option value="html">HTML</option>
+              <option value="css">CSS</option>
+              <option value="js">JavaScript</option>
+            </select>
+          </label>
+          <span class="toolbar-gap"></span>
+          <button class="btn-primary" onclick="runFormat()">Formatar</button>
+          <button
+            class="btn-clear"
+            onclick="document.getElementById('formatInput').value = ''"
+          >
+            Limpar
+          </button>
+        </div>
+
+        <textarea
+          id="formatInput"
+          class="big-input"
+          spellcheck="false"
+          placeholder="Cole aqui HTML, CSS ou JavaScript para indentar e/ou remover os comentários..."
+        ></textarea>
+
+        <p class="hint">
+          Usa as opções de saída acima. Em HTML, remover comentários também
+          limpa os comentários dentro de <code>&lt;style&gt;</code> e
+          <code>&lt;script&gt;</code>.
+        </p>
+      </section>
+
+      <div class="results" id="results"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="libs/js-beautify/beautifier.min.js"></script>
+    <script src="js/formatar-codigo.js"></script>
+  </body>
+</html>
